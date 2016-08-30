@@ -148,14 +148,14 @@ def read_AOT_stats(filepath):
   for i in range(0,len(AOT_data[0])):
     
     fileID = str(AOT_data[0][i]).split('_')[-1]
-    stats = {
-    'count_nir':AOT_data[1][i].split('=')[-1],
-    'count_swir2':AOT_data[2][i].split('=')[-1],
-    'count_ndwi':AOT_data[3][i].split('=')[-1][:-2],
-    'mean_nir':AOT_data[4][i].split('=')[-1],
-    'mean_swir2':AOT_data[5][i].split('=')[-1],
-    'mean_ndwi':AOT_data[6][i].split('=')[-1][:-2]
-    }
+    stats = [
+    AOT_data[1][i].split('=')[-1],      # count_nir
+    AOT_data[2][i].split('=')[-1],      # count_swir2
+    AOT_data[3][i].split('=')[-1][:-2], # count_ndwi
+    AOT_data[4][i].split('=')[-1],      # mean_nir
+    AOT_data[5][i].split('=')[-1],      # mean_swir2
+    AOT_data[6][i].split('=')[-1][:-2]  # mean_ndwi   
+    ]
 
     fileIDs.append(fileID)
     AOT_stats.append(stats)
@@ -201,10 +201,7 @@ AOT_stats = read_AOT_stats(filepaths['AOT_rads'])
 # save to new csv file
 filename = open('/home/sam/Desktop/Aoba_atmcorr_inputs.csv',"w")
 writer = csv.writer(filename)
-writer.writerow(["Target = "+target])
-writer.writerow(["Altiude = "+target_alts[target]])
-writer.writerow(["---------------------------------"])
-writer.writerow(["fileID,timestamp,solar_z,view_z,H2O,O3,AOT_stat"])
+writer.writerow(["Altiude = "+target_alts[target]+'  | columns =  fileID,timestamp,solar_z,view_z,H2O,O3,AOT_stat'])
 fileIDs = list(metadata.keys())
 for fileID in fileIDs:
   
