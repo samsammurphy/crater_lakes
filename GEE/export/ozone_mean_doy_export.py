@@ -1,6 +1,11 @@
+"""
+Calculates the mean ozone value for a given day of year within a given time period
+
+"""
+
+
 import ee
 import numpy as np
-import time
 
 # initialize Google EarthEngine
 ee.Initialize()
@@ -53,5 +58,4 @@ for doy in doys:
       )
   
   # start the export task
-  t = time.time()
   task.start()
