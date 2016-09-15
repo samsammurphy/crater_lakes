@@ -37,41 +37,38 @@ def get_water_vapour(geom,date):
   
   return water_Py6S_units
 
-def get_ozone(geom,date):
-  
-  # O3 datetime is in 24 hour intervals
+def get_ozone(geom,date,fill):
+     
+  def ozone_measurement(geom,O3_date):
+    
+    #filtered ozone collection
+    ozone_ic = ee.ImageCollection('TOMS/MERGED').filterDate(O3_date)
+    
+    #ozone image
+    ozone_img = ee.Image(ozone_ic.first())
+    
+    #ozone column over target
+    return ozone_img.reduceRegion(reducer=ee.Reducer.mean(), geometry=geom).get('ozone')
+    
+  def ozone_fill(geom,O3_date,fill):
+    
+    jan01 = ee.Date.fromYMD(O3_date.get('year'),1,1)
+    doy_index = date.difference(jan01,'day').toInt()#.add(1) (i.e. index is one less than doy)
+    fill_image = ee.Image(fill.get(doy_index))
+    return fill_image.reduceRegion(reducer=ee.Reducer.mean(), geometry=geom).get('ozone')
+   
+  # O3 datetime in 24 hour intervals
   O3_date = round_date(date,24)
   
-  #TODO test if the date is within the TOMS gap
-  # if yes (then use a mean value)
-  # if no (then try to find a contemporary value)
-  
-  #filtered ozone collection
-  ozone_ic = ee.ImageCollection('TOMS/MERGED').filterDate(O3_date)
-  
-  #ozone image
-  ozone_img = ee.Image(ozone_ic.first())
-  
-  #ozone column over target
-  ozone = ozone_img.reduceRegion(reducer=ee.Reducer.mean(), geometry=geom).get('ozone').getInfo()
-  
-  #TODO test if the contemporary value is a number
-  # if yes, great
-  # if no, then use a mean value
-#  test = ee.Algorithms.If(ozone==None,'use_mean_value','value_found')
-#  print(test.getInfo())
-#  print(ozone)
-  
-  return ozone
+  # fix TOMS temporal gap
+  TOMS_gap = ee.DateRange('1994-11-01','1996-08-01')  
+  ozone = ee.Algorithms.If(TOMS_gap.contains(O3_date),ozone_fill(geom,O3_date,fill),ozone_measurement(geom,O3_date))
 
-##  if ozone.getInfo() == None:
-##    ozone = get_ozone_estimate()
-#
-##convert to Py6S units (Google = Dobson Units, Py6S = atm-cm)
-#ozone_Py6S_units = ee.Number(ozone).divide(1000)# (i.e. Dobson units are milli-atm-cm )                             
-#
-#print(ozone_Py6S_units.getInfo())
+  # fix spatial gaps
+  ozone = ee.Algorithms.If(ozone,ozone,ozone_fill(geom,O3_date,fill))
+  
+  #convert to Py6S units 
+  ozone_Py6S_units = ee.Number(ozone).divide(1000)# (i.e. Dobson units are milli-atm-cm )                             
+  
+  return ozone_Py6S_units
 
-geom = ee.Geometry.Point(0,0)
-date = ee.Date('2000-01-01').advance(3,'hour')
-ozone = get_ozone(geom,date)
