@@ -14,14 +14,14 @@ def lake_analysis(toa,rad,geom):
   
   # count lake water pixels
   lake_pixel_count = water_mask.reduceRegion(reducer = ee.Reducer.sum(), \
-    geometry = geom, scale = 30).get('water_mask').getInfo()
+    geometry = geom, scale = 30).get('water_mask')
     
   # cloud pixels 
   cloud_pixels = toa.select(['nir']).gt(0.1).rename(['cloud'])  
     
   # count cloud pixels in target area
   cloud_count = cloud_pixels.reduceRegion(reducer = ee.Reducer.sum(), \
-    geometry = geom, scale = 30).get('cloud').getInfo()
+    geometry = geom, scale = 30).get('cloud')
  
   return ee.Dictionary({ \
   'mask': water_mask,\
