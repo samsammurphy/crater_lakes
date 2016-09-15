@@ -3,7 +3,6 @@ Calculates the mean ozone value for a given day of year within a given time peri
 
 """
 
-
 import ee
 import numpy as np
 

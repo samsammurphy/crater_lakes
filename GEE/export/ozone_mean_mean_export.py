@@ -23,7 +23,7 @@ crsTransform = [1.25, 0.0, -180.0, 0.0, -1.0, 90.0]
 region = [[-180.0, 90.0], [-180.0, -90.0], [180.0, -90.0], [180.0, 90.0], [-180.0, 90.0]]
 
 # days of the year
-doys = list(np.linspace(2,365,364))
+doys = list(np.linspace(366,366,1))
 for doy in doys:
 
   #image name for this day of year
