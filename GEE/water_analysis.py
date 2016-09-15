@@ -14,7 +14,7 @@ def water_analysis(toa,rad,geom):
   
   # count pixels
   lake_pixel_count = water_mask.reduceRegion(reducer = ee.Reducer.count(), \
-    geometry = geom, scale = 30).get('water_mask').getInfo()
+    geometry = geom, scale = 30).get('water_mask')
     
   return ee.Dictionary({ \
   'mask': water_mask,\

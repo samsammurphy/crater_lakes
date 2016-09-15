@@ -29,16 +29,11 @@ def get_H2O(geom,img_datetime):
   #water image
   water_img = ee.Image(water_ic.first())
   
-  #geolreference information
-  crs = water_img.projection().crs().getInfo() 
-  scale = water_img.projection().nominalScale().getInfo() 
-
   #water_vapour at target
-  water = water_img.reduceRegion(reducer = ee.Reducer.mean(), geometry = geom, 
-                                      crs = crs, scale = scale).get('pr_wtr')
+  water = water_img.reduceRegion(reducer = ee.Reducer.mean(), geometry = geom).get('pr_wtr') 
                                       
   #convert to Py6S units (Google = kg/m^2, Py6S = g/cm^2)
-  water_Py6S_units = ee.Number(water).divide(10).getInfo()                                   
+  water_Py6S_units = ee.Number(water).divide(10)                                  
   
   return water_Py6S_units
 

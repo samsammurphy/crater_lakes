@@ -27,25 +27,24 @@ def get_bandNums(satID):
   
   return bandnums_dict.get(satID)  
 
-#at-sensor radiance
-def toRad(img):
+# spectral subset of an image
+def spectral_subset(img):
   satID = satellite_ID(img)
   bandNums = get_bandNums(satID)
-  rad = ee.Algorithms.Landsat.calibratedRadiance(img) \
-    .select(bandNums,bandNames) \
+  img.select(bandNums,bandNames) \
     .set('satID',satID) \
     .set('bandNums',bandNums) \
     .set('bandNames',bandNames)
-  return rad
+
+  return img
+
+#at-sensor radiance
+def toRad(img):
+  rad = ee.Algorithms.Landsat.calibratedRadiance(img)
+  return spectral_subset(rad)
 
 #top-of-atmosphere reflectance
 def toToa(img):
-  satID = satellite_ID(img)
-  bandNums = get_bandNums(satID)
-  toa = ee.Algorithms.Landsat.TOA(img) \
-    .select(bandNums,bandNames) \
-    .set('satID',satID) \
-    .set('bandNums',bandNums) \
-    .set('bandNames',bandNames)
-  return toa
+  toa = ee.Algorithms.Landsat.TOA(img)
+  return spectral_subset(toa)
 
