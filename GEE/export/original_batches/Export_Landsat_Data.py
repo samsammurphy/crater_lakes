@@ -19,7 +19,7 @@ num_targets = target_fc.size().getInfo()
 
 #batch process all targets in one go
 list = target_fc.toList(200)
-for i in range(98,103):#num_targets
+for i in range(0,1):#num_targets
   #target name
   target_name = str(ee.Feature(list.get(i)).get('volcano').getInfo())
   print(target_name)
@@ -76,7 +76,7 @@ for i in range(98,103):#num_targets
     count = ic.size().getInfo()
     if count >= 0: 
       #export loop
-      for k in range(0,count):
+      for k in range(0,1):#count
       # report progress
         print(mission+' '+target_name+': '+str(k+1)+' of '+str(count))
       # define images
