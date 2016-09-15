@@ -8,30 +8,44 @@ Created on Wed Sep  7 13:45:06 2016
 import ee
 
 #wavebands names
-band_names = ['blue','green','red','nir','swir1','swir2']
+bandNames = ['blue','green','red','nir','swir1','swir2']
 
-# waveband nums
-def get_band_nums(img):
-  L4_to_L7 = ['B1','B2','B3','B4','B5','B7']
-  L8 = ['B2','B3','B4','B5','B6','B7']
+def satellite_ID(img):
+  fileID = ee.String(img.get('system:index'))
+  satID = fileID.slice(0,3)
+  return satID
+
+# waveband numbers
+def get_bandNums(satID):
   
-  # TODO check out 'inspect_LEDAPS_SR' for a better way to do this
-  # will make it easier when parsing out the TIR wavebands
-  # and also to handle ASTER data when available  
+  bandnums_dict = ee.Dictionary({
+  'LT4':['B1','B2','B3','B4','B5','B7'],\
+  'LT5':['B1','B2','B3','B4','B5','B7'],\
+  'LE7':['B1','B2','B3','B4','B5','B7'],\
+  'LC8':['B2','B3','B4','B5','B6','B7']
+  })
   
-  SPACECRAFT_ID = ee.String(img.get('SPACECRAFT_ID'))
-  band_nums = ee.Algorithms.If(SPACECRAFT_ID.index(ee.String('LANDSAT_8')).neq(-1), L8, L4_to_L7)
-  return band_nums
+  return bandnums_dict.get(satID)  
 
 #at-sensor radiance
 def toRad(img):
-  rad = ee.Algorithms.Landsat.calibratedRadiance(img)
-  band_nums = get_band_nums(img)
-  return rad.select(band_nums,band_names)
+  satID = satellite_ID(img)
+  bandNums = get_bandNums(satID)
+  rad = ee.Algorithms.Landsat.calibratedRadiance(img) \
+    .select(bandNums,bandNames) \
+    .set('satID',satID) \
+    .set('bandNums',bandNums) \
+    .set('bandNames',bandNames)
+  return rad
 
 #top-of-atmosphere reflectance
 def toToa(img):
-  toa = ee.Algorithms.Landsat.TOA(img)
-  band_nums = get_band_nums(img)
-  return toa.select(band_nums,band_names)
+  satID = satellite_ID(img)
+  bandNums = get_bandNums(satID)
+  toa = ee.Algorithms.Landsat.TOA(img) \
+    .select(bandNums,bandNames) \
+    .set('satID',satID) \
+    .set('bandNums',bandNums) \
+    .set('bandNames',bandNames)
+  return toa
 
