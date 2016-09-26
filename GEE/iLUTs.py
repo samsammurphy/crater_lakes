@@ -36,8 +36,8 @@ def load_iLUTs(aerosol):
   iLUTs = dict()
   for sensor in sensors:
     path = os.path.join(base_path,sensor+'_'+aerosol,'viewz_0/')
-    iLUTs[sensor] = load_iLUTs_in_path(path)
-  
+    if os.path.exists(path):
+      iLUTs[sensor] = load_iLUTs_in_path(path)
   return iLUTs
     
 

@@ -1,6 +1,75 @@
+"""
+Reads time series information from (GEE exported) .csv file
 
+Parameters include:
+- fileID
+- date and doy
+- lake,  cloud and valid pixel counts
+- lake radiances
+- solar_z, H20, O3
+- LEDAPS (SR + cfmask)
+- TIR radiance and brightness temperatures
+
+
+"""
+
+
+import re
 import csv
 import datetime
+
+
+def list_to_dictionary(string_list,dictionary):
+  
+  split = string_list.split(',')
+  for s in split:
+    keyvalue = s.split('=')
+    key = keyvalue[0].strip()
+    value = keyvalue[1].strip() 
+    if 'null' in value:
+      dictionary[key] = None
+    else:
+      dictionary[key] = float(value)
+  
+  return dictionary
+  
+
+def parse_string_dict(string_dict):
+
+  #remove {} from string dictionary
+  string_list = string_dict[1:-1]
+  
+  #return python dictionary
+  return list_to_dictionary(string_list,{})
+
+  
+def parse_LEDAPS(row,header):
+  
+  # read csv string
+  string = row[header.index('LEDAPS')][1:-1]
+
+  #LEDAPS dictionary
+  LEDAPS = {}   
+    
+  #search for lake_SR dict in string
+  match = re.search('lake_SR=',string)
+  
+  #extract pixel counts
+  counts = string[:match.span()[0]-2]
+  LEDAPS = list_to_dictionary(counts,LEDAPS)
+  
+  #check LEDAPS image exists
+  if LEDAPS['water_count'] == None:
+    return None
+  
+  #check water pixels were found
+  if LEDAPS['water_count']:
+    lake_SR_dict = string[match.span()[1]:]
+    LEDAPS['lake_SR'] = parse_string_dict(lake_SR_dict)
+  else:
+    LEDAPS['lake_SR'] = None
+   
+  return LEDAPS
 
 def read_lake_time_series(filepath):
   
@@ -11,8 +80,12 @@ def read_lake_time_series(filepath):
   
     reader = csv.reader(csvfile, delimiter=',')
     header = next(reader, None) 
+    
+    if len(header) == 0:
+      return None
+    
     for row in reader:
-      
+           
       # fileID (called 'system:index' in GEE (however, ':' is an illegal character for variables in python)    
       fileID = row[header.index('system:index')]
       
@@ -24,19 +97,17 @@ def read_lake_time_series(filepath):
       doy = float(row[header.index('doy')])
       
       # number of lake pixels detected
-      lake_count = int(float(row[header.index('lake_pixel_count')]))
+      lake_count = int(float(row[header.index('lake_count')]))
       
       # number of cloud pixels detected
       cloud_count = int(float(row[header.index('cloud_count')]))
       
-      # mean radiance values
-      lake_rad = {}    
-      string_lake_rad = row[header.index('lake_mean_rad')]
-      split = string_lake_rad[1:-1].split(',')
-      for s in split:
-        keyvalue = s.split('=')
-        lake_rad[keyvalue[0]] = keyvalue[1]
+      # valid pixel count
+      valid_count = parse_string_dict(row[header.index('valid_count')])
       
+      # mean radiance values
+      lake_rad = parse_string_dict(row[header.index('lake_mean_rad')])
+        
       # solar zenith angle
       solar_z = float(row[header.index('solar_z')])
       
@@ -46,29 +117,26 @@ def read_lake_time_series(filepath):
       # ozone in atmosphere
       O3 = float(row[header.index('O3')])
       
-      data.append((fileID, date, doy, lake_count, cloud_count, lake_rad, solar_z, H2O, O3))
-    
-  #organize data into a dictionary (NB neater doing it this way then iterating list.append)
-  output = {
-  'fileIDs':    [d[0] for d in data],
-  'date':       [d[1] for d in data],
-  'doy':        [d[2] for d in data],
-  'lake_count': [d[3] for d in data],
-  'cloud_count':[d[4] for d in data],
-  'lake_rad':   [d[5] for d in data],
-  'solar_z':    [d[6] for d in data],
-  'H2O':        [d[7] for d in data],
-  'O3':         [d[8] for d in data] 
-  }
-    
-  return output
-
-
-filepath = '/home/sam/Desktop/Ldata_Aoba/L5_Aoba.csv'
-print(read_lake_time_series(filepath))
-    
-
-    
-
-
-
+      # LEDAPS
+      LEDAPS = parse_LEDAPS(row,header)
+      
+      # Thermal infrared
+      thermal = parse_string_dict(row[header.index('thermal')])
+      
+      # append results as a dictionary
+      data.append({
+      'fileID':fileID,
+      'date':date,
+      'doy':doy,
+      'lake_count':lake_count,
+      'cloud_count':cloud_count,
+      'valid_count':valid_count,
+      'lake_rad':lake_rad,
+      'solar_z':solar_z,
+      'H2O':H2O,
+      'O3':O3,
+      'LEDAPS':LEDAPS,
+      'thermal':thermal
+      })
+   
+  return data

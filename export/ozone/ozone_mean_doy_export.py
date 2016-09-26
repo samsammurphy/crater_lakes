@@ -1,5 +1,28 @@
 """
-Calculates the mean ozone value for a given day of year within a given time period
+
+OZONE FILL
+
+Calculates the mean ozone value for a given day of year within a given time 
+period and exports to Google Earth Engine.
+
+N.B. Downloading as geotiff is possible if desired, i.e. use the .toDrive() 
+method of 'ee.batch.Export.image' instead of .toAsset()
+
+------------------------------------------------------------------------
+Copyright 2016, Sam Murphy
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+------------------------------------------------------------------------
 
 """
 
@@ -13,7 +36,7 @@ ee.Initialize()
 startDate = ee.Date('1980-01-01')
 stopDate = ee.Date('1994-01-01')
 
-# add day-of-year to image collection
+# adds day-of-year to image collection
 def doy(img):
   d = ee.Date(img.get('system:time_start'))
   jan01 = ee.Date.fromYMD(d.get('year'),1,1)
