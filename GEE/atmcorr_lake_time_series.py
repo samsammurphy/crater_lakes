@@ -44,7 +44,6 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
   filepath = '/home/sam/git/crater_lakes/GEE/atmcorr/lake_data/{0}/{1}_{0}.csv'.format(target['name'],satID)
   lake_data = read_lake_time_series(filepath)
   
-  # output data
   output = []
   i=0
   if lake_data:
@@ -53,54 +52,64 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
       
       print(i,data['fileID'])
       i += 1
-    
-      if data['lake_count'] == 0:
-        print('No lake water pixels found')
-        if data['LEDAPS']:
-          print('LEDAPS water count = ',data['LEDAPS']['water_count'])
-        else:
-          print('LEDAPS = None')
-        
-      else:
+                                                   # MUST..
+      if data['lake_count'] == 0:                  # 1) detect water pixels
+        print('No lake water pixels found')        #
+                                                   #
+      elif data['solar_z'] > 60:                   # 2) have solar zenith < 60
+        print('Solar zenith is > 60')              #
+                                                   #
+      elif all_vswir_exists(data, vswirNames) == 0:# 3) have all vswir channels
+        print('Not all VSWIR channels available')  #
+                                                   #
+      else:                                        # to be valid -> atmcorr
+      
         # add altitude to data
         data['alt'] = target['altitude']
-        
-        # all VSWIR bands must be available
-        if all_vswir_exists(data, vswirNames):      
-        
-          # AOT estimate
-          data['AOT'] = get_AOT(data, sensor_iLUTs)
           
-          # surface reflectance
-          refs = {}
-          for vswirName in vswirNames:
-            radiance = data['lake_rad'][vswirName]
-            iLUT = sensor_iLUTs[vswirName]
-            refs[vswirName] = surface_reflectance(radiance, iLUT, data)
-          
-          data['refs'] = refs
-          output.append(data)
+        # AOT estimate
+        data['AOT'] = get_AOT(data, sensor_iLUTs)
+        
+        # surface reflectance
+        refs = {}
+        for vswirName in vswirNames:
+          radiance = data['lake_rad'][vswirName]
+          iLUT = sensor_iLUTs[vswirName]
+          refs[vswirName] = surface_reflectance(radiance, iLUT, data)
+        
+        data['refs'] = refs
+        output.append(data)
 
 
   # sort chronologically 
   def datesort(dictionary): return dictionary['date'].timestamp()
   output = sorted(output,key=datesort)
   
-  # pickle
-  os.chdir("/home/sam/git/crater_lakes/GEE/atmcorr/time_series/"+target['name'])
+  # save file
+  indir = "/home/sam/git/crater_lakes/GEE/atmcorr/time_series/"+target['name']
+  try:
+    os.chdir(indir)
+  except:
+    os.mkdir(indir)
+    os.chdir(indir)
   pickle.dump(output,open("{}_{}.p".format(target['name'],satID),"wb"))
 
 
 def main():
-  # target information 
-  target = target_info('Aoba')  
   
-  # iLUTs for this target (i.e. aerosol type)
-  all_iLUTs = load_iLUTs(target['aerosol'])
+  targets = ['Copahue','Crater_Lake','Golovnin','Iamalele','Kaba','Katmai',\
+  'Kuttara','Pinatubo','Ruapehu']
   
-  # atmospherically correct data from each satellite data stream
-  satIDs = ['L4','L5','L7','L8']
-  for satID in satIDs:
-    atmcorr_satellite_time_series(target, satID, all_iLUTs)
+  for target_name in targets:
+    # target information 
+    target = target_info(target_name)  
     
+    # iLUTs for this target (i.e. aerosol type)
+    all_iLUTs = load_iLUTs(target['aerosol'])
+    
+    # atmospherically correct data from each satellite data stream
+    satIDs = ['L4','L5','L7','L8']
+    for satID in satIDs:
+      atmcorr_satellite_time_series(target, satID, all_iLUTs)
+      
 main()

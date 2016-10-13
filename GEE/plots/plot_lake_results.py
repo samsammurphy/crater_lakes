@@ -1,105 +1,56 @@
-import os 
-import pickle
-import numpy as np
+import datetime
+from load_results import load_results
 from matplotlib import pylab as plt
 
+def shared_plot_characteristics(ax):
+  # legend
+  box = ax.get_position()
+  ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
+  ax.legend(loc='center left', bbox_to_anchor=(1,0.5),shadow=True,fancybox=True)
+  # x-axis
+  ax.set_xlim(datetime.datetime(1990,1,1),datetime.datetime(2016,1,1))
+  # grid 
+  ax.grid()
 
-def get_data(target):
+def subplot_vis(ax,vswir):
+  ax.plot(vswir['date'],vswir['red'],'red',label='red')
+  ax.plot(vswir['date'],vswir['green'],'green',label='green')
+  ax.plot(vswir['date'],vswir['blue'],'blue',label='blue')
+  ax.set_ylabel('surface reflectance')
+  ax.set_ylim(0,0.5) 
+  shared_plot_characteristics(ax)
   
-  data_rootdir = '/home/sam/git/crater_lakes/GEE/atmcorr/time_series/'
-  data_path = os.path.join(data_rootdir,target)
+def subplot_value_sat(ax,vswir):
+  ax.plot(vswir['date'],vswir['value'],'black', label = 'value')
+  ax.plot(vswir['date'],vswir['saturation'],'gray', label = 'saturation')
+  ax.set_ylabel('surface reflectance')
+  ax.set_ylim(0,0.5)
+  shared_plot_characteristics(ax)
   
-  all_data = []
-  
-  for satID in ['L4','L5','L7','L8']:
-    data_file = '{}_{}.p'.format(target,satID)
-    data = pickle.load(open(os.path.join(data_path,data_file),"rb"))
-    if data:
-      all_data = all_data + data
-      
-   # chronologically sort
-  def date_sort_key(dic): return dic['date'].timestamp()
-  all_data = sorted(all_data,key=date_sort_key)
-  
-  return all_data
+def subplot_temperature(ax,tir):
+  ax.plot(tir['date'],tir['dT'],'red', label = '$\Delta$T')
+  ax.set_ylabel(r"$\Delta$T ($^\circ$C)")
+  ax.set_ylim(0,30)
+  shared_plot_characteristics(ax)
 
+def subplot_size(ax,count):
+  #ax.plot(count['date'],count['lake_count']+count['cloud_count'],'green',label='lake+cloud')
+  ax.plot(count['date'],count['lake_size'],'blue',label='lake')
+  ax.plot(count['date'],count['cloud_size'],'grey',label='cloud')
+  ax.set_ylabel(r"area (m$^2$)")
+  ax.get_yaxis().set_major_formatter(plt.LogFormatter(10,  labelOnlyBase=False))
+  shared_plot_characteristics(ax)
 
-def extract_vswir(data):
+def plot_main():
   
-  datetime = [d['date'] for d in data]
-
-  refs = [d['refs'] for d in data ]
+  target = 'Poas'
+  data = load_results(target)
   
-  b = np.array([ref['blue'] for ref in refs])
-  g = np.array([ref['green'] for ref in refs])
-  r = np.array([ref['red'] for ref in refs])
-  n = np.array([ref['nir'] for ref in refs])
-  s1 = np.array([ref['swir1'] for ref in refs])
-  s2 = np.array([ref['swir2'] for ref in refs])
+  f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1, sharex=True)# 4 subplots in 1 column (share x-axis)
+  subplot_vis(ax1,data['vswir'])
+  subplot_value_sat(ax2,data['vswir'])
+  subplot_temperature(ax3,data['tir'])
+  subplot_size(ax4,data['count'])
+
+plot_main()
   
-  return {
-  'datetime':datetime,
-  'blue':b,
-  'green':g,
-  'red':r,
-  'nir':n,
-  'swir1':s1,
-  'swir2':s2,
-  'value':[max(ri,gi) for ri, gi in zip(r,g)],
-  'saturation':abs(r-g),
-  'greyness': 1 - abs(r-g)
-  }
-
-def extract_thermal(data):
-  
-  # valid scenes must contain lake AND bkgd TIR data
-  valid = [d for d in data if d['thermal']['lake_BT'] and d['thermal']['bkgd_BT']]
-  
-  datetime = [v['date'] for v in valid]
-  
-  thermal = [v['thermal'] for v in valid]
-  
-  bkgd_BT = np.array([t['bkgd_BT'] for t in thermal])
-  bkgd_TIR = np.array([t['bkgd_TIR'] for t in thermal])
-  lake_BT = np.array([t['lake_BT'] for t in thermal])
-  lake_TIR = np.array([t['lake_TIR'] for t in thermal])
-
-  dT = lake_BT - bkgd_BT #temperature above background
-  
-  fileID = [v['fileID'] for v in valid]
-  
-  return {
-  'datetime':datetime,
-  'bkgd_BT': bkgd_BT,
-  'bkgd_TIR':bkgd_TIR,
-  'lake_BT': lake_BT,
-  'lake_TIR':lake_TIR,
-  'dT':dT,
-  'fileID':fileID
-  }
-   
-
-
-# data
-data = get_data('Aoba')
-vswir = extract_vswir(data)
-tir = extract_thermal(data)
-
-# Visible RGB
-plt.plot(vswir['datetime'],vswir['red'],'red')
-plt.plot(vswir['datetime'],vswir['green'],'green')
-plt.plot(vswir['datetime'],vswir['blue'],'blue')
-plt.title('Visible RGB')
-plt.show()
-
-# Value and Greyness
-plt.plot(vswir['datetime'],vswir['value'],'black')
-plt.plot(vswir['datetime'],vswir['saturation'],'gray')
-plt.title('Value and Saturation')
-plt.show()
-
-# Temperature above background
-plt.plot(tir['datetime'],tir['dT'],'red')
-plt.title('Temperature Above Background (oC)')
-plt.show()
-

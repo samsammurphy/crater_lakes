@@ -65,36 +65,42 @@ def lake_data(img):
 ee.Initialize()
   
 # target
-target = 'Pinatubo'
-
-# geometry (crater box)
-geom = ee.FeatureCollection('ft:12PQq9qXwrGs_GOwaL8XtNvYEPnbhW7ercpiIFv0h')\
-  .filter(ee.Filter.equals('name', target))\
-  .geometry();
-
-# image collections
-ics = ({\
-  'L4':ee.ImageCollection('LANDSAT/LT4_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-  'L5':ee.ImageCollection('LANDSAT/LT5_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-  'L7':ee.ImageCollection('LANDSAT/LE7_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-  'L8':ee.ImageCollection('LANDSAT/LC8_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01')
-})
-
-# satellite missions
-sats = ['L4','L5','L7','L8']
-
-for sat in sats:
+# target = 'Pinatubo'
   
-  #image collection
-  ic = ics[sat]
-  
-  # lake data
-  data = ic.map(lake_data)
-  
-  # export to table
-  ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
+target_list = '/home/sam/Dropbox/HIGP/Crater_Lakes/Volcanoes/volcano_names.txt'
+targets = [line.rstrip('\n') for line in open(target_list)]
 
-
+for target in targets:
+  
+  print(target)
+  # geometry (crater box)
+  geom = ee.FeatureCollection('ft:12PQq9qXwrGs_GOwaL8XtNvYEPnbhW7ercpiIFv0h')\
+    .filter(ee.Filter.equals('name', target))\
+    .geometry();
+  
+  # image collections
+  ics = ({\
+    'L4':ee.ImageCollection('LANDSAT/LT4_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L5':ee.ImageCollection('LANDSAT/LT5_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L7':ee.ImageCollection('LANDSAT/LE7_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L8':ee.ImageCollection('LANDSAT/LC8_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01')
+  })
+  
+  # satellite missions
+  sats = ['L4','L5','L7','L8']
+  
+  for sat in sats:
+    
+    #image collection
+    ic = ics[sat]
+    
+    # lake data
+    data = ic.map(lake_data)
+    
+    # export to table
+    ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
+  
+  
 
 
 
