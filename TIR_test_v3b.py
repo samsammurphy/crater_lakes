@@ -92,8 +92,8 @@ plt.plot(dT,dT,'-r')
 plt.show()
 
 
-ddTs = [dic['ddT'] for dic in results]# if dic['dT'] == 30]
-plt.hist(ddTs,normed=True)
+ddT = [dic['ddT'] for dic in results]# if dic['dT'] == 30]
+plt.hist(ddT,normed=True)
 plt.title('Linear RADIANCE')
 plt.xlabel('difference in dT')
 plt.ylabel('normalized frequency')
@@ -101,10 +101,15 @@ plt.xlim(-8,8)
 plt.ylim(0,0.3)
 plt.show()
 
-print('means ddT = ',np.mean(ddTs))
-
-
-
+#proportional difference
+pdT = [a/b for a,b in zip(model_dT,dT) if b != 0]
+plt.hist(pdT,normed=True)
+plt.title('Linear RADIANCE')
+plt.xlabel('relative dT')
+plt.ylabel('normalized frequency')
+plt.xlim(0.4,1.6)
+plt.ylim(0,5)
+plt.show()
 
 
 

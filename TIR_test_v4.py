@@ -1,6 +1,8 @@
 """
 Temperature difference (dT) retrieval test
 
+linear GRADIENT
+
 """
 
 from physics import planck

@@ -2,6 +2,8 @@
 Temperature difference (dT) retrieval test
 
 linear GRADIENT
+all surfaces (0.95 < emis < 1.0)
+
 
 """
 
@@ -83,12 +85,12 @@ taus = np.linspace(0.5,1,6)
 Lps = np.linspace(1,5,5)
 
 # surface emissivity
-e1 = 0.98
-e2s = np.linspace(0.95,0.99,5)
+e1s =  np.linspace(0.95,1,6)
+e2s = np.linspace(0.95,1,6)
 
 # temperature space
-T2s = np.linspace(0,30,7)
-dTs = np.linspace(0,30,7)
+T2s = np.linspace(0,30,4)
+dTs = np.linspace(0,30,4)
 
 # run test
 results = []
@@ -96,71 +98,76 @@ for tau in taus:
   for dTau in dTaus:
     for Lp in Lps:
       for dLp in dLps:
-        for e2 in e2s:
-          for T2 in T2s:
-            for dT in dTs:
-              
-              T1 = T2 + dT
-    
-              L1 = radianceAtSensor(T1+273.15,e1,tau,Lp)
-              L2 = radianceAtSensor(T2+273.15,e2,tau,Lp) 
-    
-              # model delta temperature
-              model_tau = tau+dTau  # transmissivity
-              model_Lp = Lp+dLp     # path radiance
-              model_dT = dTestimate(L1,L2,model_e,model_tau,model_Lp)
-              
-              # delta difference
-              ddT = model_dT - dT
-              
-              # append result
-              result = {
-              'tau':tau,
-              'Lp':Lp,
-              'e2':e2,
-              'T2':T2,
-              'dT':dT,
-              'T1':T1,
-              'L1':L1,
-              'L2':L2,
-              'model_tau':model_tau,
-              'model_dT':model_dT,
-              'ddT':ddT
-              }
-              
-              results.append(result)
+        for e1 in e1s:
+          for e2 in e2s:
+            for T2 in T2s:
+              for dT in dTs:
+                
+                T1 = T2 + dT
+      
+                L1 = radianceAtSensor(T1+273.15,e1,tau,Lp)
+                L2 = radianceAtSensor(T2+273.15,e2,tau,Lp) 
+      
+                # model delta temperature
+                model_tau = tau+dTau  # transmissivity
+                model_Lp = Lp+dLp     # path radiance
+                model_dT = dTestimate(L1,L2,model_e,model_tau,model_Lp)
+                
+                # delta difference
+                ddT = model_dT - dT
+                
+                # append result
+                result = {
+                'dT':dT,'dT':dT,
+                'model_dT':model_dT,
+                'ddT':ddT
+#                'tau':tau,
+#                'Lp':Lp,
+#                'e2':e2,
+#                'T1':T1,
+#                'T2':T2,
+#                'L1':L1,
+#                'L2':L2,
+#                'model_tau':model_tau,
+                }
+                
+                results.append(result)
 
 
 dT = [dic['dT'] for dic in results]
 model_dT = [dic['model_dT'] for dic in results]
 
-plt.plot(dT,model_dT,color='green')
-plt.title('linear GRADIENT')
-plt.xlabel('dT')
-plt.ylabel('model dT')
-plt.plot(dT,dT,'-r')
-plt.show()
+#plt.plot(dT,model_dT,color='green')
+#plt.title('linear GRADIENT')
+#plt.xlabel('dT')
+#plt.ylabel('model dT')
+#plt.plot(dT,dT,'-r')
+#plt.show()
 
 
 ddTs = [dic['ddT'] for dic in results]# if dic['dT'] == 30]
-plt.hist(ddTs,color='green',normed=True)
+plt.hist(ddTs,color='red',normed=True)
 plt.title('linear GRADIENT')
 plt.xlabel('difference in dT')
 plt.ylabel('normalized frequency')
 plt.xlim(-8,8)
+plt.ylim(0,0.3)
 plt.show()
 
 print('means ddT = ',np.mean(ddTs))
 
+
 #proportional difference
 pdT = [a/b for a,b in zip(model_dT,dT) if b != 0]
-plt.hist(pdT,normed=True,color='green')
+plt.hist(pdT,normed=True,color='red')
 plt.title('Linear GRADIENT')
 plt.xlabel('relative dT')
 plt.ylabel('normalized frequency')
 plt.xlim(0.4,1.6)
 plt.ylim(0,5)
 plt.show()
+
+
 
 
 
