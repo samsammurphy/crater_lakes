@@ -26,7 +26,7 @@ L = a/(np.exp(b/T)-1)
 m = ( a*b*np.exp(b/T) ) / ( (T**2)*(np.exp(b/T)-1)**2 )
 
 # radiance vs temperature plot
-plt.plot(temps-273.15,L,linewidth=3,color='gray')
+plt.plot(T-273.15,L,linewidth=3,color='gray')
 plt.title('Radiance at 11 microns')
 plt.xlabel('Temperature (oC)')
 plt.ylabel('Radiance')
@@ -39,9 +39,9 @@ plt.xlabel('Temperature (oC)')
 plt.ylabel('m')
 
 # linear fit of gradient
-fit = np.polyfit(temps-273.15,m,1)
+fit = np.polyfit(T-273.15,m,1)
 fit_fn = np.poly1d(fit)
-plt.plot(temps-273.15, fit_fn(temps-273.15), '--r',linewidth=2)
+plt.plot(T-273.15, fit_fn(T-273.15), '--r',linewidth=2)
 plt.show()
 print('gradient = ',fit)
 

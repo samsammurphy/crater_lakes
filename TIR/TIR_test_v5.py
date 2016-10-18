@@ -4,6 +4,8 @@ Temperature difference (dT) retrieval test
 linear GRADIENT
 all surfaces (0.95 < emis < 1.0)
 
+new all surface = 0.9 < emis < 1.0
+
 
 """
 
@@ -23,7 +25,6 @@ def radianceAtSurface(Lsensor,emis,tau,Lp):
   land-leaving radiance from at-sensor radiance
   """
   return (Lsensor-Lp)/(emis*tau)
-  
   
 def planck_gradient(L1,L2,model_e,model_tau,model_Lp):
   """
@@ -48,7 +49,6 @@ def planck_gradient(L1,L2,model_e,model_tau,model_Lp):
   # avergage gradient
   return (m1+m2)/2
 
-
 def dTestimate(L1,L2,model_e,model_tau,model_Lp):
   """
   delta temperature estimate from at-sensor radiance, and model emissivity
@@ -63,18 +63,10 @@ def dTestimate(L1,L2,model_e,model_tau,model_Lp):
   model_dL = dL/(model_e*model_tau)# estimated delta radiance at surface
   return model_dL/m                # linear correction of dL to dT
 
-
-
-
-
-# satellite waveband
-wavelength = 11 
-"""the wavelength is hardcoded for now, updates would require recalculation 
-of gradient, m, using dPlanck.py
 """
-  
-  
-# sensitivity analysis
+CONFIGURATION
+"""
+wavelength = 11 
 dTaus = [-0.05,0,0.05]
 dLps = [-0.5,0,0.5]
 model_e = 1
@@ -92,7 +84,9 @@ e2s = np.linspace(0.95,1,6)
 T2s = np.linspace(0,30,4)
 dTs = np.linspace(0,30,4)
 
-# run test
+"""
+RUN TEST
+"""
 results = []
 for tau in taus:
   for dTau in dTaus:
@@ -120,15 +114,15 @@ for tau in taus:
                 result = {
                 'dT':dT,'dT':dT,
                 'model_dT':model_dT,
-                'ddT':ddT
-#                'tau':tau,
-#                'Lp':Lp,
-#                'e2':e2,
-#                'T1':T1,
-#                'T2':T2,
-#                'L1':L1,
-#                'L2':L2,
-#                'model_tau':model_tau,
+                'ddT':ddT,
+                'tau':tau,
+                'Lp':Lp,
+                'e2':e2,
+                'T1':T1,
+                'T2':T2,
+                'L1':L1,
+                'L2':L2,
+                'model_tau':model_tau,
                 }
                 
                 results.append(result)
