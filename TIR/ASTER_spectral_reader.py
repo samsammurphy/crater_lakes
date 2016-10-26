@@ -47,8 +47,11 @@ def plot_spectra(spectral_group):
   ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
   ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
   
+  # plot waveband
+  ax.plot([11,11],[0,20],'--r')
+  
   fig.show()
   
 
 # spectral plot type
-plot_spectra('H2O')
+plot_spectra('vegetation')
