@@ -1,3 +1,12 @@
+"""
+atmospheric.py, Sam Murphy (2016-10-26)
+
+Uses Google Earth Engine to retrieve the water vapour and ozone for a given
+time (i.e. ee.Date) and location (i.e. ee.Geometry).
+
+"""
+
+
 import ee
 
 def round_date(date,xhour):
@@ -42,12 +51,12 @@ def get_water_vapour(geom,date):
 
 def get_ozone(geom,date):
   """
-  Returns ozone measurement from merged TOMS/OMI dataset
+  returns ozone measurement from merged TOMS/OMI dataset
   
   OR
   
-  Fill value during TOMS hiatus (and whereever else a fill value might occur)
-  
+  uses our fill value (which is mean value for that latlon and day-of-year)
+
   """
   
   # Point geometry required
