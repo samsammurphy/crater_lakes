@@ -1,3 +1,15 @@
+"""
+export_lake_time_series.py, Sam Murphy (2016-10-26)
+
+Extracts time series of data from volcanic craters lakes including:
+- radiance (visible - TIR)
+- lake pixel count
+- thermal infrared brightness temperature
+- water vapour and ozone
+- LEDAPS surface reflectance (where available)
+
+"""
+
 import ee
 
 # load your packages
