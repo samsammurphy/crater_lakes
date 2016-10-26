@@ -1,3 +1,13 @@
+"""
+get_LEDAPS.py, Sam Murphy
+
+Finds LEDAPS image for given date and geom. Returns a reduceRegion of the image
+(if it exists) with
+- lake (i.e. target) surface reflectance
+- water, snow, shadow and cloud pixel counts
+
+"""
+
 import ee
 import preprocess as pre
 
@@ -63,7 +73,7 @@ def get_LEDAPS(img,date,geom):
   'LC8':ee.ImageCollection('LANDSAT/LC8_SR')
   })
   
-  # image for this time and place
+  # filter collection to this time and place
   ic = ee.ImageCollection(collection_from_satID.get(satID)).filterBounds(geom).filterDate(date)
   LEDAPS_img = ee.Image(ic.first())
   

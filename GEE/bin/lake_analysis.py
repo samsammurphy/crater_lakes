@@ -1,3 +1,15 @@
+"""
+lake_analysis.py, Sam Murphy (2016-10-24)
+
+VSWIR analysis of crater radiance and top-of-atmosphere reflectance.
+
+- lake_mean_radiance
+- lake pixel count
+- 'cloud' count      <-- needs updating
+- valid pixel count (i.e. not null)
+
+"""
+
 import ee
 
 def lake_analysis(rad,toa,geom):

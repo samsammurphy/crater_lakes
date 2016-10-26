@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep  7 13:45:06 2016
+preprocess.py, Sam Murphy (2016-10-24)
 
-@author: sam
+Basic preprocessing of satellite imagery (i.e. spectral subsets, renames bands,
+convert from DN to radiance/TOA)
 """
 
 import ee

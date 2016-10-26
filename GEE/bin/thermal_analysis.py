@@ -1,3 +1,9 @@
+"""
+Thermal infrared analysis of crater lake data, returns:
+- radiance and brightness temperature of both the lake and the background
+
+"""
+
 import ee
 
 def thermal_analysis(rad,toa,geom):

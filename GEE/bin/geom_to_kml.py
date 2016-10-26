@@ -1,5 +1,9 @@
 """
-Converts a GEE geometry to a KML polygon
+GEE geometry to a KML polygon
+
+**********************
+QUICK AND DIRTY HACK!!  (probably best to avoid)
+**********************
 
 Linear rings - only
 

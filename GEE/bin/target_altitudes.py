@@ -1,6 +1,11 @@
+"""
+Reads target altitude from .csv
+
+"""
+
 import numpy as np
 
-def target_altitude(target):
+def target_altitudes():
   """
   Altitude of target locations (in metres) 
   
@@ -8,6 +13,7 @@ def target_altitude(target):
   and Spurr which are from Google Earth (not sure what source they used).
   
   """
+  
   
   #path to altitudes csv
   fpath = '/home/sam/git/crater_lakes/GEE/atmcorr/altitudes_full.csv'
@@ -18,8 +24,5 @@ def target_altitude(target):
     
   #convert altitude to float and to km
   altitudes = [float(alt)/1000 for alt in str_alts]
-  
-  # dictionary
-  dic = dict(zip(list(targets),list(altitudes)))
    
-  return dic[target]
+  return dict(zip(list(targets),list(altitudes)))

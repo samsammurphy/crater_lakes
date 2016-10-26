@@ -1,3 +1,11 @@
+"""
+returns an 'iLUTs' dictionary.
+- key = sensor name
+- value = iLUT dictionary
+  - key = waveband name
+  - value = single iLUT pickle file
+"""
+
 import os
 import glob
 import pickle

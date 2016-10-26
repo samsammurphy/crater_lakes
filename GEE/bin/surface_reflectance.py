@@ -1,4 +1,9 @@
-# PYTHON
+"""
+Calculates surface reflectance using iLUT
+
+(harmonic function is used to correct for elliptical orbit of Earth)
+
+"""
 
 import numpy as np
 import math

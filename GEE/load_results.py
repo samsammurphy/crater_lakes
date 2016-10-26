@@ -1,6 +1,9 @@
 """
-Loads the atmcorr data from different satellite missions together into 
-a collection of time series 
+load_results.py, Sam Murphy (2016-10-24)
+
+Loads crater lakes results into a collection of time series 
+
+
 
 """
 
