@@ -1,5 +1,6 @@
 # added by Sam Murphy
-/home/sam/git/crater_lakes/GEE/atmcorr/iLUT/
+./GEE/atmcorr/iLUT/
+./GEE/atmcorr/time_series/
 
 
 # Automatically created by https://www.gitignore.io/api/python
