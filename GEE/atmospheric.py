@@ -78,6 +78,14 @@ def get_ozone(geom,date):
     return ozone
     
   def ozone_fill(centroid,O3_date):
+    """
+    Gets our ozone fill value (i.e. mean value for that doy and latlon)
+    
+    you can see it
+    1) compared to LEDAPS: https://code.earthengine.google.com/8e62a5a66e4920e701813e43c0ecb83e
+    2) as a video: https://www.youtube.com/watch?v=rgqwvMRVguI&feature=youtu.be
+    
+    """
     
     # ozone fills (i.e. one band per doy)
     ozone_fills = ee.ImageCollection('users/samsammurphy/public/ozone_fill').toList(366)
