@@ -1,6 +1,5 @@
 # added by Sam Murphy
-./GEE/atmcorr/iLUT/
-./GEE/atmcorr/time_series/
+GEE/atmcorr/**
 
 
 # Automatically created by https://www.gitignore.io/api/python
