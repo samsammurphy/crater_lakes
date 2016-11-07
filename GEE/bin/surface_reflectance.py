@@ -21,13 +21,18 @@ def surface_reflectance(radiance, iLUT, i):
   surface reflectance from at-sensor radiance and other inputs
   """
   
-  # correction coefficients at perihelion
+  # at perihelion
   Edir, Edif, tau2, Lp = iLUT(i['solar_z'],i['H2O'],i['O3'],i['AOT'],i['alt'])
   
-  # elliptical orbit correction
-  Edir = Edir * simple_harmonic(i['doy'], 0.0327505,   18.99181408 ,  0.96804793)
-  Edif = Edif * simple_harmonic(i['doy'], 0.03275025,  18.99238934 ,  0.96805088)
-  Lp   = Lp   * simple_harmonic(i['doy'], 0.0327459 ,  18.99219987 ,  0.96804217)
+  # day of year correction coefficients
+  a = 0.03275
+  b = 18.992
+  c = 0.968047
+  
+  # apply elliptical orbit correction
+  Edir = Edir * simple_harmonic(i['doy'],a,b,c)
+  Edif = Edif * simple_harmonic(i['doy'],a,b,c)
+  Lp   = Lp   * simple_harmonic(i['doy'],a,b,c)
   
   #surface reflectance
   ref = (math.pi*(radiance-Lp))/(tau2*(Edir+Edif))

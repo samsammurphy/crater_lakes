@@ -23,24 +23,49 @@ from LEDAPS import get_LEDAPS
 
 
 
-# extract time series data (i.e. will be mapped onto image collection)
+
+def color_metrics(toa):
+  RGB = toa.select(['red','green','blue'])
+  HSV = RGB.rgbToHsv() 
+  return ee.Dictionary({'RGB': RGB,'HSV': HSV})
+  
+def find_water(toa):
+  return toa.normalizedDifference(['green','nir']).gte(0.4).rename(['water'])
+    
+def find_cloud(color,BT):
+  HSV = ee.Image(color.get('HSV'))
+  grey = HSV.select(['saturation']).lt(0.3)
+  bright = HSV.select(['value']).gt(0.1)
+  cold = BT.lt(20)
+  cloud = grey.multiply(bright).multiply(cold)
+  cloudy = cloud.distance(ee.Kernel.euclidean(5, "pixels")).gte(0).unmask(0, False)# buffered clouds
+  return cloudy.rename(['cloud'])
+
+# extracts lake data from an image (will be mapped over image collection)
 def lake_data(img):
     
   # date
   date = ee.Date(img.get('system:time_start'))
   
-  # day of year (for convenience, e.g. elliptical orbit correction)
-  doy = doy_from_date(date)
-  
   # preprocessing (at-sensor radiance and top-of-atmosphere reflectance)
   rad = preprocess.toRad(img)
   toa = preprocess.toToa(img)
+  
+  # color metrics
+  color = color_metrics(toa)
+  
+  # brightness temperature
+  BT = toa.select('tir1').subtract(273).rename(['BT'])
+  
+  # water and cloud pixels
+  water = find_water(toa)
+  cloud = find_cloud(color,BT)  
     
   # lake analysis (mean radiances and pixel counts)
-  lake = lake_analysis(rad,toa,geom)
+  lake = lake_analysis(geom,rad,water,cloud)
   
   # thermal infrared analysis
-  thermal = thermal_analysis(rad, toa, geom)
+  thermal = thermal_analysis(geom,rad,toa,water,cloud)
   
   # solar zenith
   solar_z = ee.Number(90.0).subtract(img.get('SUN_ELEVATION'))
@@ -57,7 +82,7 @@ def lake_data(img):
   #result
   data = ee.Feature(geom,{\
     'date':date,\
-    'doy':doy,\
+    'doy':doy_from_date(date),\
     'lake_mean_rad':lake.get('lake_mean_rad'),\
     'lake_count':lake.get('lake_count'),\
     'cloud_count':lake.get('cloud_count'),\
@@ -75,12 +100,11 @@ def lake_data(img):
 
 # start Earth Engine
 ee.Initialize()
-  
-# target
-# target = 'Pinatubo'
-  
+
 target_list = '/home/sam/Dropbox/HIGP/Crater_Lakes/Volcanoes/volcano_names.txt'
 targets = [line.rstrip('\n') for line in open(target_list)]
+
+targets = ['Aoba']
 
 for target in targets:
   
@@ -99,7 +123,7 @@ for target in targets:
   })
   
   # satellite missions
-  sats = ['L4','L5','L7','L8']
+  sats = ['L4']#,'L5','L7','L8']
   
   for sat in sats:
     
@@ -111,8 +135,7 @@ for target in targets:
     
     # export to table
     ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
-  
-  
+
 
 
 
