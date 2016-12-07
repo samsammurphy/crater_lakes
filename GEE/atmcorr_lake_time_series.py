@@ -97,8 +97,7 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
 
 def main():
   
-  targets = ['Copahue','Crater_Lake','Golovnin','Iamalele','Kaba','Katmai',\
-  'Kuttara','Pinatubo','Ruapehu']
+  targets = ['Kelut']
   
   for target_name in targets:
     # target information 

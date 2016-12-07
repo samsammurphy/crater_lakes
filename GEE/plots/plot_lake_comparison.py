@@ -29,7 +29,7 @@ ax.plot(refs['date'],refs[waveband],waveband,lw=2)
 ax.plot(LEDAPS['date'],LEDAPS[waveband],'r',alpha=0.25)
 ax.plot(LEDAPS['date'],LEDAPS[waveband],'.r')
 
-# interactive with data
+# interact with data
 datacursor()
 
 

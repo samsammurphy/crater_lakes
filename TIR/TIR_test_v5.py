@@ -69,7 +69,7 @@ CONFIGURATION
 wavelength = 11 
 dTaus = [-0.05,0,0.05]
 dLps = [-0.5,0,0.5]
-model_e = 1
+model_e = 1 # i.e. the assumed emissivity (looks like blackbody is best)
 
 
 # atmospheres

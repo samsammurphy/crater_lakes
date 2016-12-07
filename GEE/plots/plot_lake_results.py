@@ -17,14 +17,14 @@ def subplot_vis(ax,vswir):
   ax.plot(vswir['date'],vswir['green'],'green',label='green')
   ax.plot(vswir['date'],vswir['blue'],'blue',label='blue')
   ax.set_ylabel('surface reflectance')
-  ax.set_ylim(0,0.5) 
+  ax.set_ylim(0,1) 
   shared_plot_characteristics(ax)
   
 def subplot_value_sat(ax,vswir):
   ax.plot(vswir['date'],vswir['value'],'black', label = 'value')
   ax.plot(vswir['date'],vswir['saturation'],'gray', label = 'saturation')
   ax.set_ylabel('surface reflectance')
-  ax.set_ylim(0,0.5)
+  ax.set_ylim(0,1)
   shared_plot_characteristics(ax)
   
 def subplot_temperature(ax,tir):
@@ -41,9 +41,9 @@ def subplot_size(ax,count):
   ax.get_yaxis().set_major_formatter(plt.LogFormatter(10,  labelOnlyBase=False))
   shared_plot_characteristics(ax)
 
-def plot_main():
+def main():
   
-  target = 'Poas'
+  target = 'Kelut'
   data = load_results(target)
   
   f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1, sharex=True)# 4 subplots in 1 column (share x-axis)
@@ -52,5 +52,6 @@ def plot_main():
   subplot_temperature(ax3,data['tir'])
   subplot_size(ax4,data['count'])
 
-plot_main()
+if __name__ == '__main__':
+  main()
   
