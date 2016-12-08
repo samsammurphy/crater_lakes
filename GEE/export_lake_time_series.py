@@ -1,12 +1,15 @@
 """
 export_lake_time_series.py, Sam Murphy (2016-10-26)
 
-Extracts time series of data from volcanic craters lakes including:
-- radiance (visible - TIR)
+Google Earth Engine task manager, sends output to Google Drive. 
+output = time series volcanic craters lakes data:
+- radiance (visible, nir, swir and tir)
 - lake pixel count
 - thermal infrared brightness temperature
 - water vapour and ozone
 - LEDAPS surface reflectance (where available)
+
+output folder called 'Ldata_{target}'
 
 """
 
