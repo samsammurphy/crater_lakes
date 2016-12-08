@@ -11,7 +11,7 @@ import pickle
 
 from target_altitude import target_altitude
 from sensor_from_satID import sensor_from_satID
-from read_lake_time_series import read_lake_time_series
+from read_GEE_export import read_lake_time_series
 from iLUTs import load_iLUTs
 from get_AOT import get_AOT
 from surface_reflectance import surface_reflectance
