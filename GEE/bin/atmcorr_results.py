@@ -1,9 +1,7 @@
 """
-load_results.py, Sam Murphy (2016-10-24)
+atmcorr_results.py, Sam Murphy (2016-10-24)
 
-Loads crater lakes results into a collection of time series 
-
-
+Loads atmospherically corrected crater lakes results into time serieses 
 
 """
 

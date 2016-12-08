@@ -1,5 +1,5 @@
 import datetime
-from load_results import load_results
+from atmcorr_results import load_results
 from matplotlib import pylab as plt
 
 def shared_plot_characteristics(ax):
