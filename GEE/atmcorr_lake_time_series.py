@@ -1,6 +1,8 @@
 """
 Calculates surface reflectance of crater lakes from GEE exported time series
 
+Output is considered to be final result
+
 """
 
 
