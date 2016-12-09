@@ -96,8 +96,7 @@ def pixel_counts(data):
   initial_lake_count = np.array([d['lake_count'] for d in data ],dtype='float')
   
   # valid scenes must have 95% of max number of pixels in geom
-  valid = [d for d in data if d['valid_count']['green'] > 0.95*max_valid_count \
-                           and d['cloud_count'] < np.max(initial_lake_count)]
+  valid = [d for d in data if d['valid_count']['green'] > 0.95*max_valid_count] #and d['cloud_count'] < np.max(initial_lake_count)]
   
   # get data
   date = [v['date'] for v in valid]

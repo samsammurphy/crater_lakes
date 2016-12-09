@@ -13,37 +13,37 @@ def shared_plot_characteristics(ax):
   ax.grid()
 
 def subplot_vis(ax,vswir):
-  ax.plot(vswir['date'],vswir['red'],'red',label='red')
-  ax.plot(vswir['date'],vswir['green'],'green',label='green')
-  ax.plot(vswir['date'],vswir['blue'],'blue',label='blue')
+  ax.plot(vswir['date'],vswir['red'],'red',label='red',lw=2)
+  ax.plot(vswir['date'],vswir['green'],'green',label='green',lw=2)
+  ax.plot(vswir['date'],vswir['blue'],'blue',label='blue',lw=2)
   ax.set_ylabel('surface reflectance')
   ax.set_ylim(0,1) 
   shared_plot_characteristics(ax)
   
 def subplot_value_sat(ax,vswir):
-  ax.plot(vswir['date'],vswir['value'],'black', label = 'value')
-  ax.plot(vswir['date'],vswir['saturation'],'gray', label = 'saturation')
+  ax.plot(vswir['date'],vswir['value'],'black', label = 'value',lw=2)
+  ax.plot(vswir['date'],vswir['saturation'],'gray', label = 'saturation',lw=2)
   ax.set_ylabel('surface reflectance')
   ax.set_ylim(0,1)
   shared_plot_characteristics(ax)
   
 def subplot_temperature(ax,tir):
-  ax.plot(tir['date'],tir['dT'],'red', label = '$\Delta$T')
+  ax.plot(tir['date'],tir['dT'],'red', label = '$\Delta$T',lw=2)
   ax.set_ylabel(r"$\Delta$T ($^\circ$C)")
   ax.set_ylim(0,30)
   shared_plot_characteristics(ax)
 
 def subplot_size(ax,count):
   #ax.plot(count['date'],count['lake_count']+count['cloud_count'],'green',label='lake+cloud')
-  ax.plot(count['date'],count['lake_size'],'blue',label='lake')
-  ax.plot(count['date'],count['cloud_size'],'grey',label='cloud')
-  ax.set_ylabel(r"area (m$^2$)")
+  ax.plot(count['date'],count['lake_size']/900,'blue',label='lake',lw=2)
+  #ax.plot(count['date'],count['cloud_size'],'grey',label='cloud')
+  ax.set_ylabel('pixels')#r"area (m$^2$)"
   ax.get_yaxis().set_major_formatter(plt.LogFormatter(10,  labelOnlyBase=False))
   shared_plot_characteristics(ax)
 
 def main():
   
-  target = 'Kelut'
+  target = 'Aoba'
   data = load_results(target)
   
   f, (ax1, ax2, ax3, ax4) = plt.subplots(4,1, sharex=True)# 4 subplots in 1 column (share x-axis)
