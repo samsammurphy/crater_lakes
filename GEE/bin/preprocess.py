@@ -9,8 +9,21 @@ convert from DN to radiance/TOA)
 import ee
 
 
+# satellite ID
 def satellite_ID(img):
-  return ee.String(img.get('system:index')).slice(0,3)
+
+  # first three letters of GEE 'filename' (i.e. system:index)
+  prefix = ee.String(img.get('system:index')).slice(0,3)
+  
+  # is the first letter 'L'?
+  strCompare = prefix.slice(0,1).compareTo('L') 
+  # NOTE! compareTo() will return ZERO if comparison is TRUE!!
+  
+  # if yes return prefix (i.e. Landsat) else return 'AST' (i.e. ASTER)                                      
+  return ee.Algorithms.If(strCompare, 'AST', prefix)
+  # !! i.e. prefix is in 'false' position of ee.Algorithms.If() because, in
+  # this special case, ZERO = TRUE !!
+  
   
 # visible-to-shortwave band names
 def get_vswirNames(satID):
@@ -19,7 +32,9 @@ def get_vswirNames(satID):
   'LT4':['blue','green','red','nir','swir1','swir2'],\
   'LT5':['blue','green','red','nir','swir1','swir2'],\
   'LE7':['blue','green','red','nir','swir1','swir2'],\
-  'LC8':['blue','green','red','nir','swir1','swir2']
+  'LC8':['blue','green','red','nir','swir1','swir2'],\
+  'AST':['green','red','nir','swir1','swir2','swir3','swir4','swir5','swir6']
+  # ASTER does not have a blue band, i.e. B01 = green
   })
   
   return vswirNames_dict.get(satID)
@@ -31,12 +46,39 @@ def get_vswirNums(satID):
   'LT4':['B1','B2','B3','B4','B5','B7'],\
   'LT5':['B1','B2','B3','B4','B5','B7'],\
   'LE7':['B1','B2','B3','B4','B5','B7'],\
-  'LC8':['B2','B3','B4','B5','B6','B7']
+  'LC8':['B2','B3','B4','B5','B6','B7'],\
+  'AST':['B01','B02','B3N','B04','B05','B06','B07','B08','B09']
   })
   
   return vswirNums_dict.get(satID)
 
-# spectral subset of vswir bands
+# thermal infrared band names
+def get_tirNames(satID):
+  
+  tirNames_dict = ee.Dictionary({
+  'LT4':['tir1'],\
+  'LT5':['tir1'],\
+  'LE7':['tir1','tir2'],\
+  'LC8':['tir1','tir2'],\
+  'AST':['tir1','tir2','tir3','tir4','tir5']
+  })
+  
+  return tirNames_dict.get(satID)
+  
+# thermal band numbers
+def get_tirNums(satID):
+  
+  tirNums_dict = ee.Dictionary({
+  'LT4':['B6'],\
+  'LT5':['B6'],\
+  'LE7':['B6_VCID_1','B6_VCID_2'],\
+  'LC8':['B10','B11'],\
+  'AST':['B10','B11','B12','B13','B14']
+  })
+  
+  return tirNums_dict.get(satID)
+  
+# vswir spectral subset
 def vswir_subset(img, satID):
   vswirNums = ee.List(get_vswirNums(satID))
   vswirNames = ee.List(get_vswirNames(satID))
@@ -46,23 +88,10 @@ def vswir_subset(img, satID):
     .set('vswirNames',vswirNames)
   return subset
 
-# thermal band numbers
-def get_tirNums(satID):
-  
-  tirNums_dict = ee.Dictionary({
-  'LT4':['B6'],\
-  'LT5':['B6'],\
-  'LE7':['B6_VCID_1','B6_VCID_2'],\
-  'LC8':['B10','B11']
-  })
-  
-  return tirNums_dict.get(satID)
-
+# tir spectral subset
 def tir_subset(img, satID):
-  
   tirNums = get_tirNums(satID)
-  tirNames = ee.Algorithms.If(ee.List(tirNums).length().eq(1),['tir1'],['tir1','tir2'])
-  
+  tirNames = get_tirNames(satID)
   subset = img.select(tirNums,tirNames)\
     .set('satID',satID)\
     .set('tirNums',tirNums)\
