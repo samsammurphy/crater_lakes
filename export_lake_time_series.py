@@ -25,12 +25,6 @@ from doy_from_date import doy_from_date
 from LEDAPS import get_LEDAPS
 
 
-
-
-def color_metrics(toa):
-  RGB = toa.select(['red','green','blue'])
-  HSV = RGB.rgbToHsv() 
-  return ee.Dictionary({'RGB': RGB,'HSV': HSV})
   
 def find_water(toa):
   return toa.normalizedDifference(['green','nir']).gte(0.4).rename(['water'])
@@ -43,6 +37,11 @@ def find_cloud(color,BT):
   cloud = grey.multiply(bright).multiply(cold)
   cloudy = cloud.distance(ee.Kernel.euclidean(5, "pixels")).gte(0).unmask(0, False)# buffered clouds
   return cloudy.rename(['cloud'])
+  
+def color_metrics(toa):
+  RGB = toa.select(['red','green','blue'])
+  HSV = RGB.rgbToHsv() 
+  return ee.Dictionary({'RGB': RGB,'HSV': HSV})
 
 # extracts lake data from an image (will be mapped over image collection)
 def lake_data(img):
