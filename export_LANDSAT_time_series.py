@@ -9,7 +9,7 @@ output = time series volcanic craters lakes data:
 - water vapour and ozone
 - LEDAPS surface reflectance (where available)
 
-output folder called 'Ldata_{target}'
+output to Google Drive folder called 'Ldata_{target}'
 
 """
 
@@ -106,7 +106,7 @@ ee.Initialize()
 target_list = '/home/sam/Dropbox/HIGP/Crater_Lakes/Volcanoes/volcano_names.txt'
 targets = [line.rstrip('\n') for line in open(target_list)]
 
-targets = ['Aoba']
+targets = ['Batur']
 
 for target in targets:
   
