@@ -64,7 +64,7 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
       elif all_vswir_exists(data, vswirNames) == 0:# 3) have all vswir channels
         print('Not all VSWIR channels available')  #
                                                    #
-      else:                                        # to be valid -> atmcorr
+      else:                                        # ..to be valid..
       
         # add altitude to data
         data['alt'] = target['altitude']
