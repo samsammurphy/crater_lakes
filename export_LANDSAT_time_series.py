@@ -1,15 +1,16 @@
 """
-export_lake_time_series.py, Sam Murphy (2016-10-26)
+export_LANDSAT_time_series.py, Sam Murphy (2016-10-26)
 
-Google Earth Engine task manager, sends output to Google Drive. 
-output = time series volcanic craters lakes data:
+This is a Google Earth Engine task manager. It sends lake data to a 
+Google Drive folder called 'Ldata_{target}'
+
+OUTPUT
+-------------------------------------------------------------------------------
 - radiance (visible, nir, swir and tir)
 - lake pixel count
 - thermal infrared brightness temperature
 - water vapour and ozone
 - LEDAPS surface reflectance (where available)
-
-output to Google Drive folder called 'Ldata_{target}'
 
 """
 
