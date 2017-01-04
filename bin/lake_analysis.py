@@ -13,6 +13,11 @@ VSWIR analysis of crater radiance and top-of-atmosphere reflectance.
 import ee
 
 def lake_analysis(geom,rad,water,cloud):
+  
+  #TODO! 
+  # - dynamic scale (i.e. 15, 30, etc.)
+  # - check TIR band is valid too! (think you might be saving here but using later?)
+  # - check water and cloud are latest masks
    
   # radiance from water pixels
   water_rad = rad.updateMask(water)
