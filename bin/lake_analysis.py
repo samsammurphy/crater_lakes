@@ -12,7 +12,7 @@ VSWIR analysis of crater radiance and top-of-atmosphere reflectance.
 
 import ee
 
-def lake_analysis(geom,rad,water,cloud):
+def lake_analysis(geom,rad,cloud,water):
   
   #TODO! 
   # - dynamic scale (i.e. 15, 30, etc.)
