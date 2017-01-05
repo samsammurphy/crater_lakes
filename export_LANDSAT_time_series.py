@@ -65,7 +65,7 @@ def lake_data(img):
   cloud = find_cloud(color,BT)  
     
   # lake analysis (mean radiances and pixel counts)
-  lake = lake_analysis(geom,rad,water,cloud)
+  lake = lake_analysis(geom,rad,cloud,water)
   
   # thermal infrared analysis
   thermal = thermal_analysis(geom,rad,toa,water,cloud)
