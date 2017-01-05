@@ -30,31 +30,68 @@ from doy_from_date import doy_from_date
 
 
 def color_metrics(toa, satID):
+  """
+  Calculates 
   
-  #2D color: ASTER + LANDSAT
+  - (new) 2D 'saturation' and 'value' of red-green space
+  - (traditional) 3D Hue-Saturation-Value IF blue band available.
+  
+  """
+
+  # 2D color: ASTER & LANDSAT
   R = ee.Image(toa).select(['red'])
   G = ee.Image(toa).select(['green'])
-  saturation = G.subtract(R)#.rename('saturation')
-  value = ee.Image(R.max(G)).rename('value')
-  metrics = ee.Dictionary({'2D':{'saturation':saturation,'value':value}})  
+  saturation = R.subtract(G).abs()
+  value = R.max(G)
+  metrics = ee.Dictionary({'2D':{'saturation':saturation,'value':value}})
   
-  # 3D color: LANDSAT only
-  def add_HSV(metrics):
-    RGB = ee.Image(toa).select(['red','green','blue'])
-    HSV = RGB.rgbToHsv() 
-    metrics['3D'] = HSV
-    return metrics
-    
-  metrics = ee.Algorithms.If('SATID = AST',metrics,add_HSV(metrics))
-    
+  # 3D color
+  hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')# blue band exists?
+  HSV = ee.Algorithms.If(hasBlue,\
+    ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
+  
+  # add 3D color
+  metrics = metrics.set('3D',HSV)
+      
   return metrics
 
-def cloud_mask():
-  cloud = 'latest algorithm'
-  return cloud  
+def cloud_mask(color, BT):
+  """
+  Cloud pixels are grey, bright and cold
   
-def water_mask():
-  water = 'latest algorithm'
+  - grey and bright: 2D saturation and value
+  - cold: brightness temperature
+  
+  """
+  
+  color2D = ee.Dictionary(ee.Dictionary(color).get('2D'))
+  saturation = ee.Image(color2D.get('saturation'))
+  value = ee.Image(color2D.get('value'))
+  
+  #saturation threshold
+  threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)
+  # i.e. 
+  # saturation must be 0.1 lower than brightness values between 0 and 0.2
+  # and always lower than 0.1 in magnitude.
+  
+  # cloud pixels
+  grey_and_bright = saturation.lt(ee.Image(threshold))
+  cold = ee.Image(BT).lt(20)
+  cloud = grey_and_bright.multiply(cold)
+  
+  # clouds are nebulous, fluffy edges are included (up to 5 pixels away)
+  cloudy = cloud.distance(ee.Kernel.euclidean(5, "pixels")).gte(0).unmask(0, False)
+
+  return cloudy
+  
+def water_mask(toa):
+  """
+  Water pixels have an NDWI > 0.3 (where NDWI = Normalized Difference Water Index)
+  """
+    
+  ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
+  water = ndwi.gte(0.3)
+
   return water  
   
   
@@ -65,20 +102,20 @@ def lake_data(img, geom):
   # preprocessing
   rad = Aster.radiance.fromDN(img)     # at-sensor radiance
   toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-#  BT = Aster.temperature.fromRad(rad)  # brightness temperature
+  BT  = Aster.temperature.fromRad(rad)  # brightness temperature
    
   # color metrics
-  color = color_metrics(toa.get('vnir'),color2D=True)
+  color = color_metrics(toa.get('vnir'),'AST')
   
-  return color
+  # cloud mask
+  cloud = cloud_mask(color, BT)
   
-#  # water and cloud pixels
-#  water = find_water(toa)
-#  cloud = find_cloud(color,BT)  
-#  
-#  # lake analysis (mean radiances and pixel counts)
-#  lake = lake_analysis(geom,rad,water,cloud)
-#  
+  # water mask
+  water = water_mask(toa.get('vnir'))
+  
+  # lake analysis (mean radiances and pixel counts)
+  lake = lake_analysis(geom,rad,cloud,water)
+  
 #  # thermal infrared analysis
 #  thermal = thermal_analysis(geom,rad,toa,water,cloud)
 #  
@@ -99,7 +136,9 @@ def lake_data(img, geom):
 ##    'thermal':thermal
 #    })    
 
-  
+  return lake
+
+
 def main():
   # start Earth Engine
   ee.Initialize()
