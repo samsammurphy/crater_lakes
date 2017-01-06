@@ -22,14 +22,13 @@ import ee
 from preprocess_ASTER import Aster
 from atmospheric import get_water_vapour
 from atmospheric import get_ozone
-from lake_analysis import lake_analysis
-from thermal_analysis import thermal_analysis
+from lake_analyses import vnir_analysis
 from doy_from_date import doy_from_date
 
 
 
 
-def color_metrics(toa, satID):
+def color_metrics(toa):
   """
   Calculates 
   
@@ -37,21 +36,21 @@ def color_metrics(toa, satID):
   - (traditional) 3D Hue-Saturation-Value IF blue band available.
   
   """
-
+  
   # 2D color: ASTER & LANDSAT
   R = ee.Image(toa).select(['red'])
   G = ee.Image(toa).select(['green'])
   saturation = R.subtract(G).abs()
   value = R.max(G)
-  metrics = ee.Dictionary({'2D':{'saturation':saturation,'value':value}})
+  metrics = ee.Dictionary({'2D':
+                              ee.Dictionary({'saturation':saturation,'value':value})
+                          })
   
   # 3D color
-  hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')# blue band exists?
+  hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')
   HSV = ee.Algorithms.If(hasBlue,\
     ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
-  
-  # add 3D color
-  metrics = metrics.set('3D',HSV)
+  metrics = ee.Dictionary(metrics).set('3D',HSV)
       
   return metrics
 
@@ -59,21 +58,23 @@ def cloud_mask(color, BT):
   """
   Cloud pixels are grey, bright and cold
   
-  - grey and bright: 2D saturation and value
-  - cold: brightness temperature
+  - grey and bright: 2D Saturation and Value
+  - cold: Brightness Temperature
   
+  More detail on grey and bright threshold:
+  - Saturation always < 0.1
+  - if Value between 0.1 and 0.2 then Saturation must be 0.1 less than Value
+  - Value always > 0.1 (i.e. negative Saturation not possible)
   """
   
+  # 2D saturation and value
   color2D = ee.Dictionary(ee.Dictionary(color).get('2D'))
   saturation = ee.Image(color2D.get('saturation'))
   value = ee.Image(color2D.get('value'))
   
-  #saturation threshold
-  threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)
-  # i.e. 
-  # saturation must be 0.1 lower than brightness values between 0 and 0.2
-  # and always lower than 0.1 in magnitude.
-  
+  # saturation threshold (based on value)
+  threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)    
+
   # cloud pixels
   grey_and_bright = saturation.lt(ee.Image(threshold))
   cold = ee.Image(BT).lt(20)
@@ -86,35 +87,50 @@ def cloud_mask(color, BT):
   
 def water_mask(toa):
   """
-  Water pixels have an NDWI > 0.3 (where NDWI = Normalized Difference Water Index)
+  Water pixels have an NDWI > 0.3 (Normalized Difference Water Index)
   """
-    
+  
   ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
-  water = ndwi.gte(0.3)
+  water = ndwi.gte(0.0)
+  # Note! originally 0.3 (i.e. for Landsat)
+  # however, set to zero because ASTER nir is less effective at water detection
+  # due to slightly shorter wavelength. 
+  # You should be able to get away with this..
+  # IF YOU DRAW A CRATER OUTLINE FOR EACH TARGET VOLCANO!!
 
   return water  
   
   
   
-# extracts lake data from an image (will be mapped over image collection)
+# lake data from single image (will be mapped over image collection)
 def lake_data(img, geom):
   
   # preprocessing
   rad = Aster.radiance.fromDN(img)     # at-sensor radiance
   toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-  BT  = Aster.temperature.fromRad(rad)  # brightness temperature
+  BT  = Aster.temperature.fromRad(rad) # brightness temperature
    
   # color metrics
-  color = color_metrics(toa.get('vnir'),'AST')
-  
+  color = color_metrics(toa.get('vnir'))
+
   # cloud mask
   cloud = cloud_mask(color, BT)
   
   # water mask
-  water = water_mask(toa.get('vnir'))
+  water = water_mask(toa.get('vnir')) 
   
-  # lake analysis (mean radiances and pixel counts)
-  lake = lake_analysis(geom,rad,cloud,water)
+  
+  toa = ee.Image(ee.Dictionary(toa).get('vnir'))
+  img = ee.Image(toa).normalizedDifference(['green','nir'])
+  scale = ee.Number(img.projection().nominalScale())
+  lake_mean = img.reduceRegion(ee.Reducer.mean(), geom, scale)
+  print(lake_mean.getInfo())
+  
+
+  
+  # lake analyses (mean radiances and pixel counts)
+  #vnir_results = vnir_analysis(rad,geom,cloud,water)
+  #swir_results = swir_analysis(rad,geom,cloud,water)
   
 #  # thermal infrared analysis
 #  thermal = thermal_analysis(geom,rad,toa,water,cloud)
@@ -136,17 +152,18 @@ def lake_data(img, geom):
 ##    'thermal':thermal
 #    })    
 
-  return lake
+  return 1#vnir_results
 
 
 def main():
+  
   # start Earth Engine
   ee.Initialize()
   
-  target = 'Aoba'
+  target = 'Aso'
   
   # geometry (crater box)
-  geom = ee.FeatureCollection('ft:12PQq9qXwrGs_GOwaL8XtNvYEPnbhW7ercpiIFv0h')\
+  geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
     .filter(ee.Filter.equals('name', target))\
     .geometry()
   
@@ -162,8 +179,8 @@ def main():
   #print('count = ',aster.aggregate_count('system:index').getInfo())
   
   # feature collection of results
-  test = lake_data(ee.Image(aster.first()),geom)
-  print(test.getInfo())
+  img = ee.Image(aster.first())
+  test = lake_data(img,geom)
 
 if __name__ == '__main__':
   main()
