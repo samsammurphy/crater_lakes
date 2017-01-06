@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-preprocess.py, Sam Murphy (2016-10-24)
+preprocess_ASTER.py, Sam Murphy (2017-01-05)
 
 Basic preprocessing of ASTER imagery (i.e. spectral subsets, renames bands,
 convert from DN to radiance/TOA/BT)
@@ -26,12 +26,10 @@ class Aster():
         """
         check which subsystems are on/off
         """
-        
-        ic = ee.ImageCollection(image)# create image collection for filtering
       
-        vnir_on = ic.filter(ee.Filter.listContains('ORIGINAL_BANDS_PRESENT','B01')).aggregate_count('system:index')
-        swir_on = ic.filter(ee.Filter.listContains('ORIGINAL_BANDS_PRESENT','B04')).aggregate_count('system:index')
-        tir_on  = ic.filter(ee.Filter.listContains('ORIGINAL_BANDS_PRESENT','B10')).aggregate_count('system:index')
+        vnir_on = ee.List(ee.Image(image).bandNames()).contains('B01')
+        swir_on = ee.List(ee.Image(image).bandNames()).contains('B04')
+        tir_on  = ee.List(ee.Image(image).bandNames()).contains('B10')
         
         return [vnir_on, swir_on, tir_on]
         
@@ -134,7 +132,7 @@ class Aster():
         k1 = ee.Image([3040.136402, 2482.375199, 1935.060183, 866.468575, 641.326517])
         k2 = ee.Image([1735.337945, 1666.398761, 1585.420044, 1350.069147, 1271.221673])
         
-        temperature = k2.divide(k1.divide(tir).add(1).log())
+        temperature = k2.divide(k1.divide(tir).add(1).log()).subtract(273.15)
         
         return temperature
       
