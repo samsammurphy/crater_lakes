@@ -12,6 +12,7 @@ def thermal_analysis(geom,rad,toa,water,cloud):
   # - do you want to use ASTER tir1 band?
   # - is that the same wavelength as the Landsat band?
   # - dT atmcorr requires different dB/dT gradients, check this is happening later.
+  # - TIR valud count required. make sure it is being used later.
   
   # TIR radiance
   TIR = rad.select(['tir1']).rename(['TIR'])
