@@ -113,7 +113,7 @@ for target in targets:
   
   print(target)
   # geometry (crater box)
-  geom = ee.FeatureCollection('ft:12PQq9qXwrGs_GOwaL8XtNvYEPnbhW7ercpiIFv0h')\
+  geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
     .filter(ee.Filter.equals('name', target))\
     .geometry();
   
