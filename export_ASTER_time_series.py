@@ -73,7 +73,8 @@ def cloud_mask(color, BT):
   value = ee.Image(color2D.get('value'))
   
   # saturation threshold (based on value)
-  threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)    
+  # threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)   <- original
+  threshold = value.subtract(0.15).updateMask(value.lt(0.3)).unmask(0.15,False)     
 
   # cloud pixels
   grey_and_bright = saturation.lt(ee.Image(threshold))
@@ -91,7 +92,7 @@ def water_mask(toa):
   """
   
   ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
-  water = ndwi.gte(0.0)
+  water = ndwi.gte(0.1)
   # Note! originally 0.3 (i.e. for Landsat)
   # however, set to zero because ASTER nir is less effective at water detection
   # due to slightly shorter wavelength. 
