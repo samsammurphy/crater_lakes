@@ -72,9 +72,10 @@ def cloud_mask(color, BT):
   saturation = ee.Image(color2D.get('saturation'))
   value = ee.Image(color2D.get('value'))
   
-  # saturation threshold (based on value)
-  # threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)   <- original
-  threshold = value.subtract(0.15).updateMask(value.lt(0.3)).unmask(0.15,False)     
+  # saturation threshold (gradient is 1:1 up to max. saturation) <- simplicty and avoids a multiplication
+  maxS = 0.15 # maximum saturation (originally 0.1)
+  slope_threshold = value.subtract(maxS).updateMask(value.lte(maxS*2)) # min to max saturation is a 1:1 line with value
+  threshold = slope_threshold.unmask(maxS,False).rename('threshold')   # max saturation filled into masked gaps.
 
   # cloud pixels
   grey_and_bright = saturation.lt(ee.Image(threshold))
@@ -94,7 +95,7 @@ def water_mask(toa):
   ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
   water = ndwi.gte(0.1)
   # Note! originally 0.3 (i.e. for Landsat)
-  # however, set to zero because ASTER nir is less effective at water detection
+  # however, set to 0.1 because ASTER nir is less effective at water detection
   # due to slightly shorter wavelength. 
   # You should be able to get away with this..
   # IF YOU DRAW A CRATER OUTLINE FOR EACH TARGET VOLCANO!!
