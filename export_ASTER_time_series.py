@@ -20,114 +20,79 @@ on/off and have dynamic gain coefficients.
 
 import ee
 from preprocess_ASTER import Aster
+from masks import Mask
 from lake_analyses import LakeAnalysis
-from atmospheric import get_water_vapour
-from atmospheric import get_ozone
-
+from atmospheric import Atmospheric
 
 
 def color_metrics(toa):
-  """
-  Calculates 
+    """
+    Calculates 
+    
+    - (new) 2D 'saturation' and 'value' of red-green space, and
+    - (traditional) 3D Hue-Saturation-Value IF blue band available.
+    
+    """
+    
+    # 2D color: ASTER & LANDSAT
+    R = ee.Image(toa).select(['red'])
+    G = ee.Image(toa).select(['green'])
+    saturation = R.subtract(G).abs()
+    value = R.max(G)
+    metrics = ee.Dictionary({'2D':
+                                ee.Dictionary({'saturation':saturation,'value':value})
+                            })
+    
+    # 3D color
+    hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')
+    HSV = ee.Algorithms.If(hasBlue,\
+      ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
+    metrics = ee.Dictionary(metrics).set('3D',HSV)
+        
+    return metrics
+    
+def brightnessTemperature(rad):
   
-  - (new) 2D 'saturation' and 'value' of red-green space
-  - (traditional) 3D Hue-Saturation-Value IF blue band available.
+  BTs = Aster.temperature.fromRad(rad)# all BTs (for each TIR waveband)
+  BT14 = ee.Image(BTs).select('BT14') # just band 14 (11.3 microns) 
   
-  """
+  return(BT14)
   
-  # 2D color: ASTER & LANDSAT
-  R = ee.Image(toa).select(['red'])
-  G = ee.Image(toa).select(['green'])
-  saturation = R.subtract(G).abs()
-  value = R.max(G)
-  metrics = ee.Dictionary({'2D':
-                              ee.Dictionary({'saturation':saturation,'value':value})
-                          })
-  
-  # 3D color
-  hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')
-  HSV = ee.Algorithms.If(hasBlue,\
-    ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
-  metrics = ee.Dictionary(metrics).set('3D',HSV)
-      
-  return metrics
-
-def cloud_mask(color, BT):
-  """
-  Cloud pixels are grey, bright and cold
-  
-  - grey and bright: 2D Saturation and Value
-  - cold: Brightness Temperature
-  
-  More detail on grey and bright threshold:
-  - Saturation always < 0.1
-  - if Value between 0.1 and 0.2 then Saturation must be 0.1 less than Value
-  - Value always > 0.1 (i.e. negative Saturation not possible)
-  """
-  
-  # 2D saturation and value
-  color2D = ee.Dictionary(ee.Dictionary(color).get('2D'))
-  saturation = ee.Image(color2D.get('saturation'))
-  value = ee.Image(color2D.get('value'))
-  
-  # saturation threshold (based on value)
-  # threshold = value.subtract(0.1).updateMask(value.lte(0.2)).unmask(0.1,False)   <- original
-  threshold = value.subtract(0.15).updateMask(value.lt(0.3)).unmask(0.15,False)     
-
-  # cloud pixels
-  grey_and_bright = saturation.lt(ee.Image(threshold))
-  cold = ee.Image(BT).lt(20)
-  cloud = grey_and_bright.multiply(cold)
-  
-  # clouds are nebulous, fluffy edges are included (100m radius)
-  cloudy = cloud.distance(ee.Kernel.euclidean(100, "meters")).gte(0).unmask(0, False)
-
-  return cloudy.rename(['cloud'])
-  
-def water_mask(toa):
-  """
-  Water pixels have an NDWI > 0.3 (Normalized Difference Water Index)
-  """
-  
-  ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
-  water = ndwi.gte(0.1)
-
-  return water.rename(['water'])  
  
 # extracts data from an image (will be mapped over collection)
 def extraction(geom):
   """
-  A closure to hold target geometry when mapping over image colleciton
+  A closure to hold target geometry when mapped over image colleciton
   """
   
   def extract_data(img):
+    """
+    Preprocesses scenes, applies masks, extracts radiance data and pixel counts
+    """
      
     # preprocessing
     rad = Aster.radiance.fromDN(img)     # at-sensor radiance
     toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-    BT  = Aster.temperature.fromRad(rad) # brightness temperature
+    BT  = brightnessTemperature(rad)     # brightness temperature, single band
     
-    # Brightness temperature of just band 14 (11.3 micron) 
-    BT14 = ee.Image(BT).select('BT14')
-     
-    # color metrics
+    # vnir color metrics
     color = color_metrics(toa.get('vnir'))
-  
+      
     # cloud mask
-    cloud = cloud_mask(color, BT14)
+    cloud = Mask.cloud(color, BT)
     
     # water mask
-    water = water_mask(toa.get('vnir')) 
-  
+    water = Mask.water(toa.get('vnir')) 
+      
     # lake analyses
-    vnir = LakeAnalysis.vnir(rad,geom,cloud,water)
-    swir = LakeAnalysis.swir(rad,geom,cloud,water)
+    vnir = LakeAnalysis.vnir(rad,geom,cloud,water,BT)
+    swir = LakeAnalysis.swir(rad,geom,cloud,water,BT)
     tir = LakeAnalysis.tir(rad,geom,cloud,water)
     
     # date and time
     date = ee.Date(img.get('system:time_start'))
-    jan01 = ee.Date.fromYMD(eeDate.get('year'),1,1)
-    doy = eeDate.difference(jan01,'day').add(1)
+    jan01 = ee.Date.fromYMD(date.get('year'),1,1)
+    doy = date.difference(jan01,'day').add(1)
   
     result = ee.Dictionary({
                             'date':date,
@@ -136,8 +101,8 @@ def extraction(geom):
                             'swir':swir,
                             'tir':tir,
                             'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),
-                            'H2O':get_water_vapour(geom,date),
-                            'O3':get_ozone(geom,date)
+                            'H2O':Atmospheric.water(geom,date),
+                            'O3':Atmospheric.ozone(geom,date)
                             })
 
     return ee.Feature(geom,result)
@@ -161,13 +126,13 @@ def main():
   # image collection
   aster = ee.ImageCollection('ASTER/AST_L1T_003')\
     .filterBounds(geom.centroid())\
-    .filterDate('1900-01-01','2016-01-01')\
+    .filterDate('1900-01-01','2001-01-01')\
     .filter(ee.Filter.And(\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
       ))
     #.filterMetadata('system:index','equals','20080506231313')
-  
+      
   # image collection size
   print('count = ',aster.aggregate_count('system:index').getInfo())
   
@@ -176,8 +141,9 @@ def main():
   
   # feature collection of results
   data = aster.map(extract_data)
+  print(data.getInfo())
     
-  ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
+  #ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
 
 if __name__ == '__main__':
   main()
