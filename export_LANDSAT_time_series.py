@@ -13,133 +13,135 @@ OUTPUT
 - LEDAPS surface reflectance (where available)
 
 """
-
 import ee
-
-# load your packages
-import preprocess_LANDSAT
-from atmospheric import get_water_vapour
-from atmospheric import get_ozone
-from lake_analysis import lake_analysis
-from thermal_analysis import thermal_analysis
-from doy_from_date import doy_from_date
-from LEDAPS import get_LEDAPS
+from preprocess_ASTER import Aster
+from masks import Mask
+from lake_analyses import LakeAnalysis
+from atmospheric import Atmospheric
 
 
-  
-def find_water(toa):
-  return toa.normalizedDifference(['green','nir']).gte(0.4).rename(['water'])
-    
-def find_cloud(color,BT):
-  HSV = ee.Image(color.get('HSV'))
-  grey = HSV.select(['saturation']).lt(0.3)
-  bright = HSV.select(['value']).gt(0.1)
-  cold = BT.lt(20)
-  cloud = grey.multiply(bright).multiply(cold)
-  cloudy = cloud.distance(ee.Kernel.euclidean(5, "pixels")).gte(0).unmask(0, False)# buffered clouds
-  return cloudy.rename(['cloud'])
-  
 def color_metrics(toa):
-  RGB = toa.select(['red','green','blue'])
-  HSV = RGB.rgbToHsv() 
-  return ee.Dictionary({'RGB': RGB,'HSV': HSV})
-
-# extracts lake data from an image (will be mapped over image collection)
-def lake_data(img):
+    """
+    Calculates 
     
-  # date
-  date = ee.Date(img.get('system:time_start'))
-  
-  # preprocessing (at-sensor radiance and top-of-atmosphere reflectance)
-  rad = preprocess_LANDSAT.toRad(img)
-  toa = preprocess_LANDSAT.toToa(img)
-  
-  # color metrics
-  color = color_metrics(toa)
-  
-  # brightness temperature
-  BT = toa.select('tir1').subtract(273).rename(['BT'])
-  
-  # water and cloud pixels
-  water = find_water(toa)
-  cloud = find_cloud(color,BT)  
+    - (new) 2D 'saturation' and 'value' of red-green space, and
+    - (traditional) 3D Hue-Saturation-Value IF blue band available.
     
-  # lake analysis (mean radiances and pixel counts)
-  lake = lake_analysis(geom,rad,cloud,water)
+    """
+    
+    # 2D color: ASTER & LANDSAT
+    R = ee.Image(toa).select(['red'])
+    G = ee.Image(toa).select(['green'])
+    saturation = R.subtract(G).abs()
+    value = R.max(G)
+    metrics = ee.Dictionary({'2D':
+                                ee.Dictionary({'saturation':saturation,'value':value})
+                            })
+    
+    # 3D color
+    hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')
+    HSV = ee.Algorithms.If(hasBlue,\
+      ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
+    metrics = ee.Dictionary(metrics).set('3D',HSV)
+        
+    return metrics
+    
+def brightnessTemperature(rad):
   
-  # thermal infrared analysis
-  thermal = thermal_analysis(geom,rad,toa,water,cloud)
+  BTs = Aster.temperature.fromRad(rad)# all BTs (for each TIR waveband)
+  BT14 = ee.Image(BTs).select('BT14') # just band 14 (11.3 microns) 
   
-  # solar zenith
-  solar_z = ee.Number(90.0).subtract(img.get('SUN_ELEVATION'))
+  return(BT14)
   
-  # water vapour
-  H2O = get_water_vapour(geom,date)
+ 
+# extracts data from an image (will be mapped over collection)
+def extraction(geom):
+  """
+  A closure to hold target geometry when mapped over image colleciton
+  """
   
-  # ozone
-  O3 = get_ozone(geom,date)
+  def extract_data(img):
+    """
+    Preprocesses scenes, applies masks, extracts radiance data and pixel counts
+    """
+     
+    # preprocessing
+    rad = Aster.radiance.fromDN(img)     # at-sensor radiance
+    toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
+    BT  = brightnessTemperature(rad)     # brightness temperature, single band
+    
+    # vnir color metrics
+    color = color_metrics(toa.get('vnir'))
+      
+    # cloud mask
+    cloud = Mask.cloud(color, BT)
+    
+    # water mask
+    water = Mask.water(toa.get('vnir')) 
+      
+    # lake analyses
+    vnir = LakeAnalysis.vnir(rad,geom,cloud,water,BT)
+    swir = LakeAnalysis.swir(rad,geom,cloud,water,BT)
+    tir = LakeAnalysis.tir(rad,geom,cloud,water)
+    
+    # date and time
+    date = ee.Date(img.get('system:time_start'))
+    jan01 = ee.Date.fromYMD(date.get('year'),1,1)
+    doy = date.difference(jan01,'day').add(1)
   
-  # LEDAPS surface reflectance (for comparison only)
-  LEDAPS = ee.Dictionary(get_LEDAPS(img,date,geom))
-  
-  #result
-  data = ee.Feature(geom,{\
-    'date':date,\
-    'doy':doy_from_date(date),\
-    'lake_mean_rad':lake.get('lake_mean_rad'),\
-    'lake_count':lake.get('lake_count'),\
-    'cloud_count':lake.get('cloud_count'),\
-    'valid_count':lake.get('valid_count'),\
-    'solar_z':solar_z,\
-    'H2O':H2O,\
-    'O3':O3,\
-    'LEDAPS':LEDAPS,\
-    'thermal':thermal
-    })    
-  
-  return data
+    result = ee.Dictionary({
+                            'date':date,
+                            'doy':doy,
+                            'vnir':vnir,
+                            'swir':swir,
+                            'tir':tir,
+                            'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),
+                            'H2O':Atmospheric.water(geom,date),
+                            'O3':Atmospheric.ozone(geom,date)
+                            })
 
-#------------------------------------------------------------------------------
-
-# start Earth Engine
-ee.Initialize()
-
-target_list = '/home/sam/Dropbox/HIGP/Crater_Lakes/Volcanoes/volcano_names.txt'
-targets = [line.rstrip('\n') for line in open(target_list)]
-
-targets = ['Batur']
-
-for target in targets:
+    return ee.Feature(geom,result)
+    
+  return extract_data
   
-  print(target)
-  # geometry (crater box)
+  
+def main():
+  
+  # start Earth Engine
+  ee.Initialize()
+  
+  # target lake  
+  target = 'Kelut'
+ 
+  # geometry (crater outline)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
     .filter(ee.Filter.equals('name', target))\
-    .geometry();
+    .geometry()
   
-  # image collections
-  ics = ({\
-    'L4':ee.ImageCollection('LANDSAT/LT4_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-    'L5':ee.ImageCollection('LANDSAT/LT5_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-    'L7':ee.ImageCollection('LANDSAT/LE7_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
-    'L8':ee.ImageCollection('LANDSAT/LC8_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01')
-  })
+  # image collection
+  aster = ee.ImageCollection('ASTER/AST_L1T_003')\
+    .filterBounds(geom.centroid())\
+    .filterDate('1900-01-01','2001-01-01')\
+    .filter(ee.Filter.And(\
+      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
+      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
+      ))
+    #.filterMetadata('system:index','equals','20080506231313')
+      
+  # image collection size
+  print('count = ',aster.aggregate_count('system:index').getInfo())
   
-  # satellite missions
-  sats = ['L4']#,'L5','L7','L8']
+  # mapping function
+  extract_data = extraction(geom)
   
-  for sat in sats:
+  # feature collection of results
+  data = aster.map(extract_data)
+  print(data.getInfo())
     
-    #image collection
-    ic = ics[sat]
-    
-    # lake data
-    data = ic.map(lake_data)
-    
-    # export to table
-    ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
+  #ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
 
-
+if __name__ == '__main__':
+  main()
 
 
 
