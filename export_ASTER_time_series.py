@@ -93,15 +93,7 @@ def water_mask(toa):
   water = ndwi.gte(0.1)
 
   return water.rename(['water'])  
-
-def doy_from_date(eeDate):
-  """
-  day-of-year (i.e. used in harmonic correction for earth's elliptical orbit)
-  """
-  jan01 = ee.Date.fromYMD(eeDate.get('year'),1,1)
-  doy = eeDate.difference(jan01,'day').add(1)
-  return doy
-  
+ 
 # extracts data from an image (will be mapped over collection)
 def extraction(geom):
   """
@@ -132,11 +124,14 @@ def extraction(geom):
     swir = LakeAnalysis.swir(rad,geom,cloud,water)
     tir = LakeAnalysis.tir(rad,geom,cloud,water)
     
+    # date and time
     date = ee.Date(img.get('system:time_start'))
+    jan01 = ee.Date.fromYMD(eeDate.get('year'),1,1)
+    doy = eeDate.difference(jan01,'day').add(1)
   
     result = ee.Dictionary({
                             'date':date,
-                            'doy':doy_from_date(date),
+                            'doy':doy,
                             'vnir':vnir,
                             'swir':swir,
                             'tir':tir,
@@ -156,7 +151,7 @@ def main():
   ee.Initialize()
   
   # target lake  
-  target = 'Aoba'
+  target = 'Kelut'
  
   # geometry (crater outline)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
