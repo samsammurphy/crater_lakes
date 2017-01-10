@@ -6,13 +6,13 @@ Thermal infrared analysis of crater lake data, returns:
 
 import ee
 
-def thermal_analysis(geom,rad,toa,water,cloud):
+def thermal_analysis(rad,toa,geom,cloud,water):
   
   # TODO!
   # - do you want to use ASTER tir1 band?
   # - is that the same wavelength as the Landsat band?
   # - dT atmcorr requires different dB/dT gradients, check this is happening later.
-  # - TIR valud count required. make sure it is being used later.
+  # - TIR valid count required. make sure it is being used later.
   
   # TIR radiance
   TIR = rad.select(['tir1']).rename(['TIR'])
@@ -35,6 +35,9 @@ def thermal_analysis(geom,rad,toa,water,cloud):
     geometry = geom, scale = TIR.projection().nominalScale())
     
   # background (land) stats
+  
+  # TODO buffer zone based on pixel scale
+  
   bkgdArea = geom.buffer(600).difference(geom.buffer(150))
   bkgd_stats = bkgd.reduceRegion(reducer = ee.Reducer.mean(), \
     geometry = bkgdArea, scale = TIR.projection().nominalScale())
