@@ -14,7 +14,7 @@ import ee
 
 class LakeAnalysis():
   
-  def vnir(rad,geom,cloud,water):
+  def vnir(rad,geom,cloud,water,BT):
     """
     Calculates mean lake radiance in VNIR, also returns counts for
     clouds and valid pixels
@@ -26,8 +26,8 @@ class LakeAnalysis():
     # spatial resolution of pixels
     scale = ee.Number(vnir.projection().nominalScale())
   
-    # water & not cloud
-    water_rad = vnir.updateMask(water).updateMask(cloud.eq(0))
+    # water & not cloud & TIR valid
+    water_rad = vnir.updateMask(water).updateMask(cloud.eq(0)).updateMask(BT)
       
     # mean radiance from lake
     mean_rad = water_rad.reduceRegion(ee.Reducer.mean(), geom, scale)
@@ -53,7 +53,7 @@ class LakeAnalysis():
     })
   
     
-  def swir(rad,geom,cloud,water):
+  def swir(rad,geom,cloud,water,BT):
     """
     Calculates mean lake radiance in SWIR
     """
@@ -70,8 +70,8 @@ class LakeAnalysis():
       swir_water = water.reproject(crs=swir_crs, scale=swir_scale)
       
             
-      # water & not cloud
-      water_rad = swir.updateMask(swir_water).updateMask(swir_cloud.eq(0))
+      # water & not cloud & TIR valid
+      water_rad = swir.updateMask(swir_water).updateMask(swir_cloud.eq(0)).updateMask(BT)
         
       # mean radiance from lake
       mean_rad = water_rad.reduceRegion(ee.Reducer.mean(), geom, swir_scale)
