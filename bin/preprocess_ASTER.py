@@ -26,10 +26,12 @@ class Aster():
         """
         check which subsystems are on/off
         """
+        
+        bands = ee.List(ee.Image(image).get('ORIGINAL_BANDS_PRESENT'))
       
-        vnir_on = ee.List(ee.Image(image).bandNames()).contains('B01')
-        swir_on = ee.List(ee.Image(image).bandNames()).contains('B04')
-        tir_on  = ee.List(ee.Image(image).bandNames()).contains('B10')
+        vnir_on = bands.contains('B01')
+        swir_on = bands.contains('B04')
+        tir_on  = bands.contains('B10')
         
         return [vnir_on, swir_on, tir_on]
         
@@ -134,7 +136,7 @@ class Aster():
         
         temperature = k2.divide(k1.divide(tir).add(1).log()).subtract(273.15)
         
-        return temperature
+        return temperature.rename(['BT10','BT11','BT12','BT13','BT14'])
       
       def getTemperature(radiance):
 
