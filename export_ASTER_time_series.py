@@ -20,11 +20,9 @@ on/off and have dynamic gain coefficients.
 
 import ee
 from preprocess_ASTER import Aster
+from lake_analyses import LakeAnalysis
 from atmospheric import get_water_vapour
 from atmospheric import get_ozone
-from lake_analyses import vnir_analysis
-from doy_from_date import doy_from_date
-
 
 
 
@@ -81,10 +79,10 @@ def cloud_mask(color, BT):
   cold = ee.Image(BT).lt(20)
   cloud = grey_and_bright.multiply(cold)
   
-  # clouds are nebulous, fluffy edges are included (up to 5 pixels away)
-  cloudy = cloud.distance(ee.Kernel.euclidean(5, "pixels")).gte(0).unmask(0, False)
+  # clouds are nebulous, fluffy edges are included (100m radius)
+  cloudy = cloud.distance(ee.Kernel.euclidean(100, "meters")).gte(0).unmask(0, False)
 
-  return cloudy
+  return cloudy.rename(['cloud'])
   
 def water_mask(toa):
   """
@@ -93,95 +91,98 @@ def water_mask(toa):
   
   ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
   water = ndwi.gte(0.1)
-  # Note! originally 0.3 (i.e. for Landsat)
-  # however, set to 0.1 because ASTER nir is less effective at water detection
-  # due to slightly shorter wavelength. 
-  # You should be able to get away with this..
-  # IF YOU DRAW A CRATER OUTLINE FOR EACH TARGET VOLCANO!!
 
-  return water  
-  
-  
-  
-# lake data from single image (will be mapped over image collection)
-def lake_data(img, geom):
-  
-  # preprocessing
-  rad = Aster.radiance.fromDN(img)     # at-sensor radiance
-  toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-  BT  = Aster.temperature.fromRad(rad) # brightness temperature
-   
-  # color metrics
-  color = color_metrics(toa.get('vnir'))
+  return water.rename(['water'])  
 
-  # cloud mask
-  cloud = cloud_mask(color, BT)
+def doy_from_date(eeDate):
+  """
+  day-of-year (i.e. used in harmonic correction for earth's elliptical orbit)
+  """
+  jan01 = ee.Date.fromYMD(eeDate.get('year'),1,1)
+  doy = eeDate.difference(jan01,'day').add(1)
+  return doy
   
-  # water mask
-  water = water_mask(toa.get('vnir')) 
+# extracts data from an image (will be mapped over collection)
+def extraction(geom):
+  """
+  A closure to hold target geometry when mapping over image colleciton
+  """
   
+  def extract_data(img):
+     
+    # preprocessing
+    rad = Aster.radiance.fromDN(img)     # at-sensor radiance
+    toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
+    BT  = Aster.temperature.fromRad(rad) # brightness temperature
+    
+    # Brightness temperature of just band 14 (11.3 micron) 
+    BT14 = ee.Image(BT).select('BT14')
+     
+    # color metrics
+    color = color_metrics(toa.get('vnir'))
   
-  toa = ee.Image(ee.Dictionary(toa).get('vnir'))
-  img = ee.Image(toa).normalizedDifference(['green','nir'])
-  scale = ee.Number(img.projection().nominalScale())
-  lake_mean = img.reduceRegion(ee.Reducer.mean(), geom, scale)
-  print(lake_mean.getInfo())
+    # cloud mask
+    cloud = cloud_mask(color, BT14)
+    
+    # water mask
+    water = water_mask(toa.get('vnir')) 
   
+    # lake analyses
+    vnir = LakeAnalysis.vnir(rad,geom,cloud,water)
+    swir = LakeAnalysis.swir(rad,geom,cloud,water)
+    tir = LakeAnalysis.tir(rad,geom,cloud,water)
+    
+    date = ee.Date(img.get('system:time_start'))
+  
+    result = ee.Dictionary({
+                            'date':date,
+                            'doy':doy_from_date(date),
+                            'vnir':vnir,
+                            'swir':swir,
+                            'tir':tir,
+                            'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),
+                            'H2O':get_water_vapour(geom,date),
+                            'O3':get_ozone(geom,date)
+                            })
 
+    return ee.Feature(geom,result)
+    
+  return extract_data
   
-  # lake analyses (mean radiances and pixel counts)
-  #vnir_results = vnir_analysis(rad,geom,cloud,water)
-  #swir_results = swir_analysis(rad,geom,cloud,water)
   
-#  # thermal infrared analysis
-#  thermal = thermal_analysis(geom,rad,toa,water,cloud)
-#  
-#  date = ee.Date(img.get('system:time_start'))
-#
-#
-#    #result
-#  return ee.Feature(geom,{\
-#    'date':date,\
-#    'doy':doy_from_date(date),\
-##    'lake_mean_rad':lake.get('lake_mean_rad'),\
-##    'lake_count':lake.get('lake_count'),\
-##    'cloud_count':lake.get('cloud_count'),\
-##    'valid_count':lake.get('valid_count'),\
-#    'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),\
-#    'H2O':get_water_vapour(geom,date),\
-#    'O3':get_ozone(geom,date),\
-##    'thermal':thermal
-#    })    
-
-  return 1#vnir_results
-
-
 def main():
   
   # start Earth Engine
   ee.Initialize()
   
-  target = 'Aso'
-  
-  # geometry (crater box)
+  # target lake  
+  target = 'Aoba'
+ 
+  # geometry (crater outline)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
     .filter(ee.Filter.equals('name', target))\
     .geometry()
   
   # image collection
   aster = ee.ImageCollection('ASTER/AST_L1T_003')\
-    .filterBounds(geom)\
+    .filterBounds(geom.centroid())\
     .filterDate('1900-01-01','2016-01-01')\
     .filter(ee.Filter.And(\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
       ))
-      # filter ensures VNIR and TIR subsystems are ON.
-  #print('count = ',aster.aggregate_count('system:index').getInfo())
+    #.filterMetadata('system:index','equals','20080506231313')
+  
+  # image collection size
+  print('count = ',aster.aggregate_count('system:index').getInfo())
+  
+  # mapping function
+  extract_data = extraction(geom)
   
   # feature collection of results
-  img = ee.Image(aster.first())
-  test = lake_data(img,geom)
+  data = aster.map(extract_data)
+    
+  ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
 
 if __name__ == '__main__':
   main()
