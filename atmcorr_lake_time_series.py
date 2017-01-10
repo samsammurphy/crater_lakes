@@ -6,6 +6,13 @@ Output is considered to be final result
 """
 
 
+
+"""
+TODO! Add the (dT) thermal atmospheric correction here!
+
+ensure that you are using the correct gradient for each tir waveband
+"""
+
 import os
 import pickle
 
