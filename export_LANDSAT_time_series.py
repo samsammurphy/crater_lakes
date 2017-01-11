@@ -1,6 +1,8 @@
 """
 export_LANDSAT_time_series.py, Sam Murphy (2016-10-26)
 
+(2017-01-10): updated to be more inline with export_ASTER_time_series.py
+
 This is a Google Earth Engine task manager. It sends lake data to a 
 Google Drive folder called 'Ldata_{target}'
 
