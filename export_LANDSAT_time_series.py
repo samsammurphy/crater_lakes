@@ -14,10 +14,11 @@ OUTPUT
 
 """
 import ee
-from preprocess_ASTER import Aster
+import preprocess_LANDSAT
 from masks import Mask
 from lake_analyses import LakeAnalysis
 from atmospheric import Atmospheric
+from LEDAPS import Ledaps
 
 
 def color_metrics(toa):
@@ -46,14 +47,13 @@ def color_metrics(toa):
         
     return metrics
     
-def brightnessTemperature(rad):
+def brightnessTemperature(toa):
   
-  BTs = Aster.temperature.fromRad(rad)# all BTs (for each TIR waveband)
-  BT14 = ee.Image(BTs).select('BT14') # just band 14 (11.3 microns) 
-  
-  return(BT14)
-  
- 
+  BT = ee.Image(ee.Dictionary(toa).get('tir')).select('tir1') 
+
+  return BT
+
+    
 # extracts data from an image (will be mapped over collection)
 def extraction(geom):
   """
@@ -66,79 +66,81 @@ def extraction(geom):
     """
      
     # preprocessing
-    rad = Aster.radiance.fromDN(img)     # at-sensor radiance
-    toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-    BT  = brightnessTemperature(rad)     # brightness temperature, single band
-    
+    rad = preprocess_LANDSAT.toRad(img) # at-sensor radiance
+    toa = preprocess_LANDSAT.toToa(img) # top of atmosphere reflectance
+    BT  = brightnessTemperature(toa)
+     
     # vnir color metrics
     color = color_metrics(toa.get('vnir'))
-      
+       
     # cloud mask
     cloud = Mask.cloud(color, BT)
     
     # water mask
     water = Mask.water(toa.get('vnir')) 
-      
+       
     # lake analyses
     vnir = LakeAnalysis.vnir(rad,geom,cloud,water,BT)
     swir = LakeAnalysis.swir(rad,geom,cloud,water,BT)
     tir = LakeAnalysis.tir(rad,geom,cloud,water)
-    
+      
     # date and time
     date = ee.Date(img.get('system:time_start'))
     jan01 = ee.Date.fromYMD(date.get('year'),1,1)
     doy = date.difference(jan01,'day').add(1)
-  
-    result = ee.Dictionary({
+      
+    data = ee.Dictionary({
                             'date':date,
                             'doy':doy,
                             'vnir':vnir,
                             'swir':swir,
                             'tir':tir,
-                            'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),
+                            'solar_z':ee.Number(90.0).subtract(img.get('SUN_ELEVATION')),
                             'H2O':Atmospheric.water(geom,date),
-                            'O3':Atmospheric.ozone(geom,date)
+                            'O3':Atmospheric.ozone(geom,date),
+                            'LEDAPS':ee.Dictionary(Ledaps.find(img,date,geom))
                             })
-
-    return ee.Feature(geom,result)
-    
+  
+    return ee.Feature(geom,data)
   return extract_data
   
-  
 def main():
-  
+
   # start Earth Engine
   ee.Initialize()
   
-  # target lake  
-  target = 'Kelut'
- 
-  # geometry (crater outline)
+  target = 'Aoba'
+  
+  # geometry (crater box)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
-    .filter(ee.Filter.equals('name', target))\
-    .geometry()
+    .filter(ee.Filter.equals('name', target)).geometry();
   
-  # image collection
-  aster = ee.ImageCollection('ASTER/AST_L1T_003')\
-    .filterBounds(geom.centroid())\
-    .filterDate('1900-01-01','2001-01-01')\
-    .filter(ee.Filter.And(\
-      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
-      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
-      ))
-    #.filterMetadata('system:index','equals','20080506231313')
-      
+  # image collections
+  ics = ({\
+    'L4':ee.ImageCollection('LANDSAT/LT4_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L5':ee.ImageCollection('LANDSAT/LT5_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L7':ee.ImageCollection('LANDSAT/LE7_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01'),\
+    'L8':ee.ImageCollection('LANDSAT/LC8_L1T').filterBounds(geom).filterDate('1900-01-01','2016-01-01')
+  })
+  
+  # satellite missions
+  sat = 'L7'#,'L5','L7','L8']
+  
+  #image collection
+  ic = ics[sat]
+  
   # image collection size
-  print('count = ',aster.aggregate_count('system:index').getInfo())
+  print(sat+' count = ',ic.aggregate_count('system:index').getInfo())
   
-  # mapping function
+  # mapping function closure
   extract_data = extraction(geom)
   
   # feature collection of results
-  data = aster.map(extract_data)
-  print(data.getInfo())
-    
-  #ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
+  data = ic.map(extract_data)
+  
+  # export to table
+  ee.batch.Export.table.toDrive(data, sat+'_'+target+'_testing','Ldata_'+target).start()
+
 
 if __name__ == '__main__':
   main()
