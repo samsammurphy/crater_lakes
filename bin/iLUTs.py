@@ -37,7 +37,7 @@ def load_iLUTs(aerosol):
   Loads iLUTs for (multiple) sensors and a single aerosol profile
   """
   
-  base_path = '/home/sam/git/crater_lakes/GEE/atmcorr/iLUTs/'
+  base_path = '/home/sam/git/crater_lakes/atmcorr/iLUTs/'
   
   sensors = ['LANDSAT_TM','LANDSAT_ETM','LANDSAT_OLI']
   
