@@ -9,18 +9,33 @@ Finds LEDAPS image for given date and geom. Returns a reduceRegion of the image
 """
 
 import ee
-import preprocess as pre
+import preprocess_LANDSAT
 
-def get_LEDAPS(img,date,geom):
+
+class Ledaps():
+  """
+  Finds LEDAPS image and returns statistics (if available)
+  """
   
-  def LEDAPS_image_found():
+  def found(ledaps_img,geom,satID):
+    """
+    LEDAPS image found; return statistics
+    """
+    
+    # is this a Landsat 8 image?
+    isL8 = preprocess_LANDSAT.Satellite.isL8(satID)
+    
+    # band numbers in visible to short-wave infrared
+    vswirNums = ee.Algorithms.If(isL8,\
+                          ['B2','B3','B4','B5','B6','B7'],\
+                          ['B1','B2','B3','B4','B5','B7'])
     
     # LEDAPS_img reflectance wavebands
-    SR = LEDAPS_img.select(pre.get_vswirNums(satID),pre.get_vswirNames(satID))
-    SR = ee.Image(SR).divide(ee.Number(10000).float()) #convert to Py6S units (i.e. 0-1)
+    SR = ee.Image(ledaps_img.select(vswirNums,['blue','green','red','nir','swir1','swir2']))\
+    .divide(ee.Number(10000).float()) #convert to Py6S units (i.e. 0-1)
   
     # cfmask
-    cfmask = LEDAPS_img.select(['cfmask'])
+    cfmask = ledaps_img.select(['cfmask'])
     water  = cfmask.eq(1).rename(['water'])  
     shadow = cfmask.eq(2).rename(['shadow'])  
     snow   = cfmask.eq(3).rename(['snow'])  
@@ -51,8 +66,13 @@ def get_LEDAPS(img,date,geom):
     
     return result
     
-  def LEDAPS_image_not_found():
-    result = ee.Dictionary ({
+  def notFound():
+    """
+    LEDAPS image NOT found
+    
+    """
+    
+    return ee.Dictionary ({
     'lake_SR':'null',
     'water_count':'null',
     'snow_count':'null',
@@ -60,24 +80,27 @@ def get_LEDAPS(img,date,geom):
     'cloud_count':'null'
     })
     
-    return result
-  
-  # satellite ID
-  satID = ee.String(img.get('system:index')).slice(0,3)
-  
-  # image collection for this satellite
-  collection_from_satID = ee.Dictionary({
-  'LT4':ee.ImageCollection('LANDSAT/LT4_SR'),
-  'LT5':ee.ImageCollection('LANDSAT/LT5_SR'),
-  'LE7':ee.ImageCollection('LANDSAT/LE7_SR'),
-  'LC8':ee.ImageCollection('LANDSAT/LC8_SR')
-  })
-  
-  # filter collection to this time and place
-  ic = ee.ImageCollection(collection_from_satID.get(satID)).filterBounds(geom).filterDate(date)
-  LEDAPS_img = ee.Image(ic.first())
-  
-  # if image found do processing
-  result = ee.Algorithms.If(LEDAPS_img,LEDAPS_image_found(),LEDAPS_image_not_found())
-  
-  return result
+  def find(img,date,geom):
+    """
+    Look for LEDAPS image that corresponds to this landsat scene
+    """
+      
+    # image collections
+    collections = ee.Dictionary({
+    'LT4':ee.ImageCollection('LANDSAT/LT4_SR'),
+    'LT5':ee.ImageCollection('LANDSAT/LT5_SR'),
+    'LE7':ee.ImageCollection('LANDSAT/LE7_SR'),
+    'LC8':ee.ImageCollection('LANDSAT/LC8_SR')
+    })
+    
+    # satellite ID
+    satID = preprocess_LANDSAT.Satellite.ID(img)
+    
+    # collection for this satellite
+    collection = ee.ImageCollection(collections.get(satID))
+    
+    # LEDAPS img
+    ledaps_img = ee.Image(collection.filterBounds(geom).filterDate(date).first())
+
+    return ee.Algorithms.If(ledaps_img,Ledaps.found(ledaps_img,geom,satID),Ledaps.notFound())
+    
