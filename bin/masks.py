@@ -49,7 +49,7 @@ class Mask():
     
   def water(toa):
     """
-    Water pixels have an NDWI > 0.3 (Normalized Difference Water Index)
+    Water pixels have an NDWI > 0.1 (Normalized Difference Water Index)
     """
     
     ndwi = ee.Image(toa).normalizedDifference(['green','nir'])
