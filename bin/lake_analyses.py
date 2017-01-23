@@ -32,7 +32,7 @@ class LakeAnalysis():
     # mean radiance from lake
     mean_rad = water_rad.reduceRegion(ee.Reducer.mean(), geom, scale)
     
-  #  # lake pixel count
+    # lake pixel count
     lake_count = water.reduceRegion(reducer = ee.Reducer.sum(), \
       geometry = geom, scale = scale).get('water')
     
@@ -58,7 +58,7 @@ class LakeAnalysis():
     Calculates mean lake radiance in SWIR
     """
       
-    def getSwir():# ASTER SWIR maybe OFF (VNIR and TIR always ON via filtering)
+    def getSwir():# ASTER SWIR maybe OFF (ASTER VNIR and TIR always ON via filtering, LANDSAT always all subsystems)
     
       # swir radiance
       swir = ee.Image(ee.Dictionary(rad).get('swir'))
