@@ -1,7 +1,7 @@
 """
 export_LANDSAT_time_series.py, Sam Murphy (2016-10-26)
 
-(2017-01-10): updated to be more inline with export_ASTER_time_series.py
+2017-01-10: updated to be more inline with export_ASTER_time_series.py
 
 This is a Google Earth Engine task manager. It sends lake data to a 
 Google Drive folder called 'Ldata_{target}'
@@ -41,7 +41,7 @@ def color_metrics(toa):
                                 ee.Dictionary({'saturation':saturation,'value':value})
                             })
     
-    # 3D color
+    # 3D color: LANDSAT only
     hasBlue = ee.List(ee.Image(toa).bandNames()).contains('blue')
     HSV = ee.Algorithms.If(hasBlue,\
       ee.Image(toa).select(['red','green','blue']).rgbToHsv(),'null')
@@ -59,7 +59,7 @@ def brightnessTemperature(toa):
 # extracts data from an image (will be mapped over collection)
 def extraction(geom):
   """
-  A closure to hold target geometry when mapped over image colleciton
+  A closure to hold target geometry when mapped over image collection
   """
   
   def extract_data(img):
