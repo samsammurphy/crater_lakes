@@ -126,22 +126,24 @@ def main():
   })
   
   # satellite missions
-  sat = 'L7'#,'L5','L7','L8']
+  sats = ['L4','L5','L7','L8']
   
-  #image collection
-  ic = ics[sat]
-  
-  # image collection size
-  print(sat+' count = ',ic.aggregate_count('system:index').getInfo())
-  
-  # mapping function closure
-  extract_data = extraction(geom)
-  
-  # feature collection of results
-  data = ic.map(extract_data)
-  
-  # export to table
-  ee.batch.Export.table.toDrive(data, sat+'_'+target+'_testing','Ldata_'+target).start()
+  for sat in sats:
+      
+    #image collection
+    ic = ics[sat]
+    
+    # image collection size
+    print(sat+' count = ',ic.aggregate_count('system:index').getInfo())
+    
+    # mapping function closure
+    extract_data = extraction(geom)
+    
+    # feature collection of results
+    data = ic.map(extract_data)
+    
+    # export to table
+    ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
 
 
 if __name__ == '__main__':
