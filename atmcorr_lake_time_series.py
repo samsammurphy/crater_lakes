@@ -95,7 +95,7 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
   output = sorted(output,key=datesort)
   
   # save file
-  indir = "/home/sam/git/crater_lakes/GEE/atmcorr/time_series/"+target['name']
+  indir = "/home/sam/git/crater_lakes/atmcorr/time_series/"+target['name']
   try:
     os.chdir(indir)
   except:
