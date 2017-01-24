@@ -24,16 +24,6 @@ from get_AOT import get_AOT
 from surface_reflectance import surface_reflectance
 
 
-def target_info(target_name):
-
-  target = {
-  'name':target_name,
-  'aerosol':'MA',
-  'altitude':target_altitude(target_name)
-  }
-  return target
-  
-  
 def all_vswir_exists(data, vswirNames):
   for vswirName in vswirNames:
     if not data['lake_rad'][vswirName]:
@@ -50,7 +40,7 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
   vswirNames = ['blue','green','red','nir','swir1','swir2']  
   
   # lake data for this target and satellite
-  filepath = '/home/sam/git/crater_lakes/GEE/atmcorr/lake_data/{0}/{1}_{0}.csv'.format(target['name'],satID)
+  filepath = '/home/sam/git/crater_lakes/GEE/atmcorr/lake_data/{0}/{1}_{0}.csv'.format(target,satID)
   lake_data = read_lake_time_series(filepath)
   
   output = []
@@ -74,7 +64,7 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
       else:                                        # ..to be valid..
       
         # add altitude to data
-        data['alt'] = target['altitude']
+        data['alt'] = target_altitude(target)
           
         # AOT estimate
         data['AOT'] = get_AOT(data, sensor_iLUTs)
@@ -95,29 +85,27 @@ def atmcorr_satellite_time_series(target, satID, all_iLUTs):
   output = sorted(output,key=datesort)
   
   # save file
-  indir = "/home/sam/git/crater_lakes/atmcorr/time_series/"+target['name']
+  indir = "/home/sam/git/crater_lakes/atmcorr/time_series/"+target
   try:
     os.chdir(indir)
   except:
     os.mkdir(indir)
     os.chdir(indir)
-  pickle.dump(output,open("{}_{}.p".format(target['name'],satID),"wb"))
+  pickle.dump(output,open("{}_{}.p".format(target,satID),"wb"))
 
 
 def main():
   
-  targets = ['Kelut']
+  target = 'Aoba'
   
-  for target_name in targets:
-    # target information 
-    target = target_info(target_name)  
-    
-    # iLUTs for this target (i.e. aerosol type)
-    all_iLUTs = load_iLUTs(target['aerosol'])
-    
-    # atmospherically correct data from each satellite data stream
-    satIDs = ['L4','L5','L7','L8']
-    for satID in satIDs:
-      atmcorr_satellite_time_series(target, satID, all_iLUTs)
+  aerosol = 'MA'
+  
+  # iLUTs for this target (i.e. aerosol type)
+  all_iLUTs = load_iLUTs(aerosol)
+  
+  # atmospherically correct data from each satellite data stream
+  satIDs = ['L4','L5','L7','L8']
+  for satID in satIDs:
+    atmcorr_satellite_time_series(target, satID, all_iLUTs)
       
 main()
