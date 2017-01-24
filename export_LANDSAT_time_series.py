@@ -126,7 +126,7 @@ def main():
   })
   
   # satellite missions
-  sats = ['L4','L5','L7','L8']
+  sats = ['L7']#,'L5','L7','L8']
   
   for sat in sats:
       
@@ -143,7 +143,11 @@ def main():
     data = ic.map(extract_data)
     
     # export to table
-    ee.batch.Export.table.toDrive(data, sat+'_'+target,'Ldata_'+target).start()
+    ee.batch.Export.table.toDrive(collection = data,\
+                                  description = sat+'_'+target,\
+                                  folder = 'Ldata_'+target,\
+                                  fileFormat= 'GeoJSON'\
+                                  ).start()
 
 
 if __name__ == '__main__':
