@@ -17,9 +17,7 @@ import os
 import glob
 import json
 import pickle
-
-import numpy
-
+import numpy as np
 from target_altitude import target_altitude
 from surface_reflectance import surface_reflectance
 
@@ -55,10 +53,6 @@ def load_iLUTs(satellite,aerosol):
     iLUTs[band_names[i]] = pickle.load(open(fname, "rb" ))
   
   return iLUTs
-
-
-import numpy as np
-from surface_reflectance import surface_reflectance
 
 
 
@@ -113,8 +107,12 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
    
   base_path = '/home/sam/git/crater_lakes/atmcorr/lake_data/'
     
-  with open(base_path+'{0}/{1}_{0}.geojson'.format(target,satellite)) as f: 
-    GEE_data = json.load(f)
+  try:
+    with open(base_path+'{0}/{1}_{0}.geojson'.format(target,satellite)) as f: 
+      GEE_data = json.load(f)
+  except:
+    print("Couldn't open : {}\nNo valid data? Returning empty results list..".format(f.name))
+    return []
   
   iLUTs = load_iLUTs(satellite,aerosol)
   
@@ -122,22 +120,37 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
   
   results = []
   
-  for feature in GEE_data['features']:
+  for i, feature in enumerate(GEE_data['features']): # enumerate for debugging only
+  
+    print(i)
      
     properties = feature['properties']
     
+    # subsystem extract
     vnir = properties['vnir']['mean_radiance']
     swir = properties['swir']
+    tir  = properties['tir']
         
-    # validity testing
-    valid = True
-    if properties['vnir']['pixel_counts']['lake'] == 0: # lake pixels found?
+    """
+    Validity testing
+    0) swir subsystem switched on?
+    1) all subsystems provide data (i.e. cloud detection, AOT retrieval, etc.)
+    2) lake pixels detected inside the target polygon
+    3) solar angle less than 60 degrees (i.e. LUT limit)
+    """
+    if swir != False:
+      vis_good  = vnir['green'] != None
+      swir_good = swir['swir1'] != None
+      tir_lake_good = tir['lake_rad']['tir1'] != None
+      tir_bkgd_good = tir['bkgd_rad']['tir1'] != None
+      lake_detected = properties['vnir']['pixel_counts']['lake'] >= 0
+      solar_angle_good = properties['solar_z'] < 60
+      
+      valid = vis_good and swir_good and tir_lake_good and tir_bkgd_good and \
+        lake_detected and solar_angle_good
+    else:
       valid = False
-    if properties['solar_z'] > 60: 
-      valid = False
-    if not swir['swir1']: # i.e. both ASTER and LANDSAT SWIR can be OFF
-      valid = False
-    # TODO catch no data (?)
+
     
     if valid:
       
@@ -151,9 +164,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
                 'doy':properties['doy'],
                 'satellite':satellite
                 }
-      
-
-             
+        
       params['AOT'] = estimate_lake_AOT(vnir,swir,params,iLUTs)
          
       sr = {} # surface reflectance
@@ -174,6 +185,9 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
         except:
           pass
       
+      # TIR
+      # TODO
+      
       # Timestamp
       unix_time = properties['date']['value'] / 1000 # i.e. GEE uses milliseconds
         
@@ -191,7 +205,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
   
   return results
   
-def pickle_result(result, target, satellite):
+def pickle_results(results, target, satellite):
   
   outdir = "/home/sam/git/crater_lakes/atmcorr/results/"+target
   try:
@@ -200,7 +214,7 @@ def pickle_result(result, target, satellite):
     os.mkdir(outdir)
     os.chdir(outdir)
     
-  pickle.dump(result,open("{}_{}.p".format(target,satellite),"wb"))
+  pickle.dump(results,open("{}_{}.p".format(target,satellite),"wb"))
 
 
   
@@ -208,15 +222,13 @@ def main():
   
   target = 'Aoba'
   
-  satellite = 'L7'
+  satellite = 'AST'
   
-  aerosol = 'MA'# TODO CO needs interpolation for ASTER and other LANDSATs
+  aerosol = 'MA'# TODO CO LUTs needs interpolation for ASTER and other LANDSATs
      
-  result = atmospherically_correct_time_series(target, satellite, aerosol)
+  results = atmospherically_correct_time_series(target, satellite, aerosol)
   
-  pickle_result(result, target, satellite)
-  
-  print('done')
+  pickle_results(results, target, satellite)
       
 if __name__ == '__main__':
   main()

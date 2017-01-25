@@ -116,7 +116,7 @@ def main():
   ee.Initialize()
   
   # target lake  
-  target = 'Kelut'
+  target = 'Aoba'
  
   # geometry (crater outline)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
@@ -126,7 +126,7 @@ def main():
   # image collection
   aster = ee.ImageCollection('ASTER/AST_L1T_003')\
     .filterBounds(geom.centroid())\
-    .filterDate('1900-01-01','2001-01-01')\
+    .filterDate('1900-01-01','2016-01-01')\
     .filter(ee.Filter.And(\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
       ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
@@ -141,9 +141,13 @@ def main():
   
   # feature collection of results
   data = aster.map(extract_data)
-  print(data.getInfo())
-    
-  #ee.batch.Export.table.toDrive(data, 'AST_'+target,'Ldata_'+target).start()
+  
+  # export to table
+  ee.batch.Export.table.toDrive(collection = data,\
+                                description = 'AST_'+target,\
+                                folder = 'Ldata_'+target,\
+                                fileFormat= 'GeoJSON'\
+                                ).start()
 
 if __name__ == '__main__':
   main()

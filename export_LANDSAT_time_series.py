@@ -126,7 +126,7 @@ def main():
   })
   
   # satellite missions
-  sats = ['L7']#,'L5','L7','L8']
+  sats = ['L8']#,'L5','L7','L8']
   
   for sat in sats:
       
