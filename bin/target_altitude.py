@@ -16,7 +16,7 @@ def target_altitude(target):
   """
   
   #path to altitudes csv
-  fpath = '/home/sam/git/crater_lakes/GEE/atmcorr/altitudes_full.csv'
+  fpath = '/home/sam/git/crater_lakes/atmcorr/altitudes_full.csv'
   
   # read csv
   targets,str_alts = np.genfromtxt(fpath, dtype='str', unpack=True, \
