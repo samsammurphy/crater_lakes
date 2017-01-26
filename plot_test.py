@@ -6,58 +6,109 @@ plot_test.py
 
 import pickle
 import datetime
-
 from matplotlib import pylab as plt
 
 
-def plot_sr(data,name,symbol):
+
+def read_sr_data(sat_data,name):
   """
-  Plots a given surface reflectance variable (e.g. blue) by name. 
+  Reads surface reflectance for given satellite 
   """
-  date = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data if name in d['sr']]
-  value = [d['sr'][name] for d in data if name in d['sr']]
   
-  variable_colour = {
-                    'blue':'b',
-                    'green':'g',
-                    'red':'r'
-                    }
+  date = [datetime.datetime.fromtimestamp(d['timestamp']) for d in sat_data if name in d['sr']]
+  SR = [d['sr'][name] for d in sat_data if name in d['sr']]
   
-  colour = variable_colour[name]              
-                    
-  plt.plot(date,value,colour+symbol)
+  return (date,SR)
+  
 
 
-def satellite_plot(base_path,target,satellite):
+def load_data(target,satellites):
+  """
+  Loads all surface reflectance data into single dictionary
+  """
+  
+  base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
+  
+  data = {}
+  
+  for sat in satellites:
+    fname = '{}{}_{}.p'.format(base_path,target,sat)
+    sat_data = pickle.load(open(fname,"rb"))
+    data[sat] = {
+        'blue':read_sr_data(sat_data,'blue'),
+        'green':read_sr_data(sat_data,'green'),
+        'red':read_sr_data(sat_data,'red')   
+        }
+    
+  return data
 
-  with open('{}{}_{}.p'.format(base_path,target,satellite),"rb") as f:
-    data = pickle.load(f)
+
+
+def define_plot_space():
+  
+  # figure instance
+  fig = plt.figure()
+  chart = fig.add_subplot(1,1,1) # a.k.a. 'axes'
+  
+  # time period define
+  start = datetime.datetime(2000,1,1)
+  stop  = datetime.datetime(2016,1,1)
+  chart.set_xlim(start, stop)
+  
+  # reflectance limits
+  chart.set_ylim(0,0.6)
+  
+  return chart
+
+
+
+def plot_satellite_points(chart,data):
+  """
+  Overplots satellite data points
+  """
     
   satellite_symbol = {
                       'L4':'s',
-                      'L5':'s',
-                      'L7':'s',
-                      'L8':'s',
-                      'AST':'s',
+                      'L5':'*',
+                      'L7':'o',
+                      'L8':'D',
+                      'AST':'^',
                       }
   
-  symbol = satellite_symbol[satellite]
+  variable_colour = {
+                  'blue':'b',
+                  'green':'g',
+                  'red':'r'
+                  }
   
-  plot_sr(data,'blue',symbol)
+  for sat in data.keys():
+    symbol = satellite_symbol[sat]
+    
+    for waveband in data[sat].keys():
+      
+      date = data[sat][waveband][0]
+      value = data[sat][waveband][1]
+      colour = variable_colour[waveband] 
+      
+      chart.plot(date,value,colour+symbol)
+    
 
 
 def main():
   
   target = 'Aoba'
   
-  base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
-
-  satellite = 'L7'
+  satellites = ['L4','L5','L7','L8','AST']
   
-  # define a plot space
+  data = load_data(target,satellites)
   
-  # plot each satellite in turn (unique symbol for each satellite)
-  satellite_plot(base_path,target,satellite)
+  chart = define_plot_space()
+    
+  # plot trend line (all satellites)
+  # plot_trend_line(chart,data)
+  
+  # plot unique symbols for each satellite
+  plot_satellite_points(chart,data)
   
 
 if __name__ == '__main__':
