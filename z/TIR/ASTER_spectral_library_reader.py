@@ -1,5 +1,5 @@
 """
-ASTER_spectral_reader.py, author: Sam Murphy (2016-10-17)
+ASTER_spectral_library_reader.py, author: Sam Murphy (2016-10-17)
 
 Reads spectra from the ASTER Spectral Library
 
