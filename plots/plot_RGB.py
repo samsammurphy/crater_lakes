@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-plot_test.py
+plot_RGB.py
+
+Plots visible surface reflectance for all satellites onto a chart (i.e. 'axes')
+
 """
 
 import pickle
