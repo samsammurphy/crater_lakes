@@ -43,8 +43,7 @@ fit = np.polyfit(T-273.15,m,1)
 fit_fn = np.poly1d(fit)
 plt.plot(T-273.15, fit_fn(T-273.15), '--r',linewidth=2)
 plt.show()
-print('gradient = ',fit)
 
 # model gradient from temperature
-mm = 0.00115482*(T-273.15) + 0.11001702
-
+print('linear model of 2nd derivative of Planck function:\n\n'
+'m = {}*(T-273.15) + {}'.format(fit[0],fit[1]))
