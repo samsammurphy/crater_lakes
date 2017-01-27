@@ -1,17 +1,17 @@
 """
-Calculates surface reflectance of crater lakes from GEE exported time series
+Atmospheric correction of crater lake data
 
-Output is considered to be final result
+inputs:
+
+- data exported from Google Earth Engine
+  
+outputs:
+
+- surface reflectance
+- delta temperature (dT)
 
 """
 
-
-
-"""
-TODO! Add the (dT) thermal atmospheric correction here!
-
-ensure that you are using the correct gradient for each tir waveband
-"""
 
 import os
 import glob
@@ -133,9 +133,9 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
         
     """
     Validity testing
-    0) swir subsystem switched on?
-    1) all subsystems provide data (i.e. cloud detection, AOT retrieval, etc.)
-    2) lake pixels detected inside the target polygon
+    0) swir subsystem on, i.e. True?
+    1) all subsystems provide data, i.e. not None?
+    2) lake pixels detected inside target area?
     3) solar angle less than 60 degrees (i.e. LUT limit)
     """
     if swir != False:
@@ -184,7 +184,13 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
           sr[band] = surface_reflectance(radiance, iLUTs[band], params)
         except:
           pass
+
+      """
+      TODO! Add the (dT) thermal atmospheric correction here!
       
+      ensure that you are using the correct gradient for each tir waveband
+      """
+
       # TIR
       # TODO
       
