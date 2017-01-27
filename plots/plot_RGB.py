@@ -9,7 +9,6 @@ Plots visible surface reflectance for all satellites onto a chart (i.e. 'axes')
 
 import pickle
 import datetime
-import numpy
 from matplotlib import pylab as plt
 
 
@@ -75,10 +74,6 @@ def waveband_colour(waveband):
                   'blue':'b',
                   'green':'g',
                   'red':'r'
-                  #TODO, color for other bands
-#                  'nir':'',
-#                  'swir1':'',
-#                  'swir2':'',
                   }
                   
   return assign_color[waveband]
