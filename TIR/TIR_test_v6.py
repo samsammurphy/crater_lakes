@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Temperature difference (dT) test
 
-linear GRADIENT
-all surfaces (0.95 < emis < 1.0)
+1) estimate surface temperature
+2) average of 1st derivative of plank function (i.e. at T1 and T2) = m
+3) use m to solve for dT
 
 """
 
@@ -22,6 +25,26 @@ def radianceAtSurface(Lsensor,emis,tau,Lp):
   land-leaving radiance from at-sensor radiance
   """
   return (Lsensor-Lp)/(emis*tau)
+
+def gradientAtTemperature(T):
+  """
+  1st derivative of planck function with respect to temperature
+  """
+
+  # wavelength in metres
+  w = 11e-6
+  
+  # constants
+  h = 6.626068e-34    #planck
+  c = 2.997925e8      #speed of light
+  k = 1.38066e-23     #boltzmann
+  
+  # condensed constances
+  K1 = (2*h*c**2)/w**5 # per metres (i.e. SI units)
+  K1 = K1 / 1e6        # per microns
+  K2 = (h*c)/(k*w)   
+  
+  return ( K1*K2*np.exp(K2/(T)) ) / ( ((T)**2)*(np.exp(K2/(T))-1)**2 )  
   
 def planck_gradient(L1,L2,model_e,model_tau,model_Lp):
   """
@@ -40,32 +63,18 @@ def planck_gradient(L1,L2,model_e,model_tau,model_Lp):
   T2 = planck(wavelength,L=B2)
   
   # gradient estimates
-  m1 = 0.00115482*(T1-273.15) + 0.11001702
-  m2 = 0.00115482*(T2-273.15) + 0.11001702
-  
+  m1 = gradientAtTemperature(T1)
+  m2 = gradientAtTemperature(T2)
+    
   # avergage gradient
   return (m1+m2)/2
-
-def dTestimate(L1,L2,model_e,model_tau,model_Lp):
-  """
-  delta temperature estimate from at-sensor radiance, and model emissivity
-  and model transmissivity
-  """
-  
-  # estimate gradient of planck function
-  m = planck_gradient(L1,L2,model_e,model_tau,model_Lp)  
-  
-  # estimate dT from dL
-  dL = L1-L2                       # delta radiance at sensor
-  model_dL = dL/(model_e*model_tau)# estimated delta radiance at surface
-  return model_dL/m                # linear correction of dL to dT
 
 """
 CONFIGURATION
 """
 wavelength = 11 
-dTaus = [-0.05,0,0.05]
-dLps = [-0.5,0,0.5]
+tau_errors = [-0.05,0,0.05]
+Lp_errors = [-0.5,0,0.5]
 model_e = 1 # i.e. the assumed emissivity (looks like blackbody is best)
 
 
@@ -74,43 +83,51 @@ taus = np.linspace(0.5,1,6)
 Lps = np.linspace(1,5,5)
 
 # surface emissivity
-e1s =  np.linspace(0.95,1,6)
+e1s = np.linspace(0.95,1,6)
 e2s = np.linspace(0.95,1,6)
 
 # temperature space
 T2s = np.linspace(0,30,4)
-dTs = np.linspace(0,30,4)
+true_dTs = np.linspace(0,30,4)
 
 """
 RUN TEST
 """
 results = []
 for tau in taus:
-  for dTau in dTaus:
+  for tau_error in tau_errors:
     for Lp in Lps:
-      for dLp in dLps:
+      for Lp_error in Lp_errors:
         for e1 in e1s:
           for e2 in e2s:
             for T2 in T2s:
-              for dT in dTs:
+              for dT_true in true_dTs:
                 
-                T1 = T2 + dT
+                T1 = T2 + dT_true
       
                 L1 = radianceAtSensor(T1+273.15,e1,tau,Lp)
                 L2 = radianceAtSensor(T2+273.15,e2,tau,Lp) 
       
-                # model delta temperature
-                model_tau = tau+dTau  # transmissivity
-                model_Lp = Lp+dLp     # path radiance
-                model_dT = dTestimate(L1,L2,model_e,model_tau,model_Lp)
+                # esimtated transmissivity and path radiance
+                tau_est = tau + tau_error 
+                Lp_est  = Lp + Lp_error
+                
+                # estimate gradient of planck function
+                m = planck_gradient(L1,L2,model_e,tau_est,Lp_est)  
+                
+                # estimate dT from dL
+                dL = L1-L2                     
+                dL_surface_est = dL/(model_e*tau_est) # estimated delta radiance at surface
+                dT_surface_est = dL_surface_est/m         
+  
                 
                 # delta difference
-                ddT = model_dT - dT
+                ddT = dT_surface_est - dT_true
                 
                 # append result
                 result = {
-                'dT':dT,'dT':dT,
-                'model_dT':model_dT,
+                'dT_true':dT_true,
+                'dT_surface_est':dT_surface_est,
                 'ddT':ddT,
                 'tau':tau,
                 'Lp':Lp,
@@ -119,56 +136,31 @@ for tau in taus:
                 'T2':T2,
                 'L1':L1,
                 'L2':L2,
-                'model_tau':model_tau,
+                'tau_est':tau_est,
                 }
                 
                 results.append(result)
 
 
-dT = [dic['dT'] for dic in results]
-model_dT = [dic['model_dT'] for dic in results]
+dT_true = [x['dT_true'] for x in results]
+dT_surface_est = [x['dT_surface_est'] for x in results]
 
-#plt.plot(dT,model_dT,color='green')
-#plt.title('linear GRADIENT')
-#plt.xlabel('dT')
-#plt.ylabel('model dT')
-#plt.plot(dT,dT,'-r')
-#plt.show()
-
-
-ddTs = [dic['ddT'] for dic in results]# if dic['dT'] == 30]
+ddTs = [x['ddT'] for x in results]# if dic['dT'] == 30]
 plt.hist(ddTs,color='red',normed=True)
-plt.title('linear GRADIENT')
+plt.title("B(T)' GRADIENT ESTIMATE")
 plt.xlabel('difference in dT')
 plt.ylabel('normalized frequency')
 plt.xlim(-8,8)
 plt.ylim(0,0.3)
 plt.show()
 
-print('means ddT = ',np.mean(ddTs))
-
-
 #proportional difference
-pdT = [a/b for a,b in zip(model_dT,dT) if b != 0]
+pdT = [a/b for a,b in zip(dT_surface_est,dT_true) if b != 0]
 plt.hist(pdT,normed=True,color='red')
-plt.title('Linear GRADIENT')
+plt.title("B(T)' GRADIENT ESTIMATE")
 plt.xlabel('relative dT')
 plt.ylabel('normalized frequency')
 plt.xlim(0.4,1.6)
 plt.ylim(0,5)
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

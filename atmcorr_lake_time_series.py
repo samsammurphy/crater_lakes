@@ -192,6 +192,19 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       """
 
       # TIR
+      
+      # 1) locate ~11 microns band
+
+      # 2) estimate transmissivity and path radiance from water vapour
+
+      # 3) estimate surface temperature for lake and bkgd
+
+      # 4) get linear model of derivative of Planck function for this band
+
+      # 5) calculate mean gradient between two temperatures
+
+      # 6) calculate dT from m and dL proxy for dB
+      
       # TODO
       
       # Timestamp

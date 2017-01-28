@@ -53,6 +53,10 @@ def define_plot_space():
   fig = plt.figure()
   chart = fig.add_subplot(1,1,1) # a.k.a. 'axes'
   
+  # label axes
+  chart.set_xlabel('Date')
+  chart.set_ylabel('Reflectance')
+  
   # x limits (time period)
   start = datetime.datetime(2000,1,1)
   stop  = datetime.datetime(2016,1,1)

@@ -1,5 +1,7 @@
 """
-Temperature difference (dT) retrieval test
+Temperature difference (dT) test
+
+
 
 """
 
@@ -41,7 +43,7 @@ MODEL dT RETRIEVAL
 """
 
 def dTestimate(L1,L2,model_e,model_tau):
-  dL = L1-L2 # delta radiance at sensor
+  dL = L1-L2                       # delta radiance at sensor
   model_dL = dL/(model_e*model_tau)# estimated delta radiance at surface
   model_dT = model_dL/0.133        # linear correction from dL to dT
   return model_dT
