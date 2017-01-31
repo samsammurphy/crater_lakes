@@ -20,7 +20,7 @@ import pickle
 import numpy as np
 from target_altitude import target_altitude
 from surface_reflectance import surface_reflectance
-
+# TODO import surface_deltaTemperature()
 
 
 def load_iLUTs(satellite,aerosol):
@@ -167,7 +167,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
         
       params['AOT'] = estimate_lake_AOT(vnir,swir,params,iLUTs)
          
-      sr = {} # surface reflectance
+      sr = {} # surface reflectances
   
       # VNIR    
       for band in ['blue','green','red','nir']:
@@ -185,27 +185,13 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
         except:
           pass
 
-      """
-      TODO! Add the (dT) thermal atmospheric correction here!
-      
-      ensure that you are using the correct gradient for each tir waveband
-      """
-
       # TIR
-      
-      # 1) locate ~11 microns band
-
-      # 2) estimate transmissivity and path radiance from water vapour
-
-      # 3) estimate surface temperature for lake and bkgd
-
-      # 4) get linear model of derivative of Planck function for this band
-
-      # 5) calculate mean gradient between two temperatures
-
-      # 6) calculate dT from m and dL proxy for dB
-      
-      # TODO
+      for band in ['tir1','tir2','tir3','tir4','tir5']:
+        try:
+          radiance = tir[band]
+          sr[band] = surface_deltaTemperature(radiance, band)
+        except:
+          pass
       
       # Timestamp
       unix_time = properties['date']['value'] / 1000 # i.e. GEE uses milliseconds
