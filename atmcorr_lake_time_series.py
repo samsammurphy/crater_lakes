@@ -169,6 +169,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       
       # VNIR    
       for band in ['blue','green','red','nir']:
+        sr['blue'] = sr['green'] = sr['red'] = sr['nir'] = None # handles ASTER (no blue) and missing bands
         try:
           radiance = vnir[band]
           sr[band] = surface_reflectance(radiance, iLUTs[band], params)
@@ -196,7 +197,9 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
                 'fileID': feature['id'],
                 'timestamp': unix_time, 
                 'sr':sr,
-                'dT':dT
+                'dT':dT,
+                'lake_size':properties['vnir']['pixel_counts']['lake'],
+                'cloud':properties['vnir']['pixel_counts']['cloud']
                 }
       
       print(result)
@@ -226,13 +229,13 @@ def main():
   
   target = 'Aoba'
   
-  satellite = 'L8'
-  
   aerosol = 'MA'# TODO CO LUTs needs interpolation for ASTER and other LANDSATs
-     
-  results = atmospherically_correct_time_series(target, satellite, aerosol)
-  
-  pickle_results(results, target, satellite)
+   
+  for satellite in ['L4','L5','L7','L8','AST']:
+   
+    results = atmospherically_correct_time_series(target, satellite, aerosol)
+    
+    pickle_results(results, target, satellite)
       
 if __name__ == '__main__':
   main()
