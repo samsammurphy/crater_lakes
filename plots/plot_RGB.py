@@ -12,7 +12,6 @@ import datetime
 from matplotlib import pylab as plt
 
 
-
 def read_sr_data(sat_data,name):
   """
   Reads surface reflectance for given satellite 
