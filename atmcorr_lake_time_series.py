@@ -20,7 +20,7 @@ import pickle
 import numpy as np
 from target_altitude import target_altitude
 from surface_reflectance import surface_reflectance
-# TODO import surface_deltaTemperature()
+from surface_deltaTemperature import surface_deltaTemperature
 
 
 def load_iLUTs(satellite,aerosol):
@@ -153,8 +153,6 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
 
     
     if valid:
-      
-      print(properties)
          
       params = {
                 'solar_z':properties['solar_z'],
@@ -186,10 +184,8 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
           pass
 
       # TIR
-      for band in ['tir1','tir2','tir3','tir4','tir5']:
         try:
-          radiance = tir[band]
-          sr[band] = surface_deltaTemperature(radiance, band)
+          dT = surface_deltaTemperature(tir, satellite)
         except:
           pass
       
@@ -199,8 +195,11 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       result = {
                 'fileID': feature['id'],
                 'timestamp': unix_time, 
-                'sr':sr
+                'sr':sr,
+                'dT':dT
                 }
+                
+      print(result)
         
       results.append(result)    
 
@@ -227,7 +226,7 @@ def main():
   
   target = 'Aoba'
   
-  satellite = 'AST'
+  satellite = 'L8'
   
   aerosol = 'MA'# TODO CO LUTs needs interpolation for ASTER and other LANDSATs
      
