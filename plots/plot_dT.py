@@ -35,7 +35,7 @@ def define_plot_space():
   
 def plot_time_series(chart,data):
   """
-  Plots RGB time series
+  Plots time series
   """
   
   dT = [d['dT'] for d in data]
