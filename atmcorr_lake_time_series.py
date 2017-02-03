@@ -165,11 +165,11 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       
       params['AOT'] = estimate_lake_AOT(vnir,swir,params,iLUTs)
       
-      sr = {} # surface reflectances
-      
+      # surface reflectances (defailt vnir = None)
+      sr = {'blue':None, 'green':None,'red':None,'nir':None}
+
       # VNIR    
       for band in ['blue','green','red','nir']:
-        sr['blue'] = sr['green'] = sr['red'] = sr['nir'] = None # handles ASTER (no blue) and missing bands
         try:
           radiance = vnir[band]
           sr[band] = surface_reflectance(radiance, iLUTs[band], params)
@@ -194,6 +194,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       unix_time = properties['date']['value'] / 1000 # i.e. GEE uses milliseconds
       
       result = {
+                'satellite':satellite,
                 'fileID': feature['id'],
                 'timestamp': unix_time, 
                 'sr':sr,
