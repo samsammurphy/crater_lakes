@@ -15,14 +15,14 @@ from load_atmcorr import chronological_data
 target = 'Aoba'
 data = chronological_data(target)
 
+outdir = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
 
-outdir = '/home/sam/git/crater_lakes/atmcorr/results/'+target
-
-with open('test.csv', 'w') as csvfile:
+with open(outdir+target+'.csv', 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['fileID, timestamp,red,green,blue,dT,size,cloud'])
+    writer.writerow(['satellite, fileID, timestamp,blue,green,red,dT,lake_size,cloud'])
     for d in data:      
-      writer.writerow([d['fileID'],d['timestamp'],d['red'],d['green'],\
-                       d['blue'],d['dT'],d['size'],d['cloud']])
+      writer.writerow([d['satellite'],d['fileID'],d['timestamp'],\
+                       d['sr']['blue'],d['sr']['green'],d['sr']['red'],d['dT'],\
+                       d['lake_size'],d['cloud']])
  
 
