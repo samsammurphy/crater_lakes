@@ -7,33 +7,9 @@ Plots the difference temperature (dT) between the lake and the background
 
 """
 
-import pickle
+from load_atmcorr import chronological_data
 import datetime
 from matplotlib import pylab as plt
-
-
-def load_data(target,satellites):
-  """
-  Loads all surface reflectance data into single dictionary
-  """
-  
-  base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
-  
-  data = {}
-  
-  for sat in satellites:
-    
-    fname = '{}{}_{}.p'.format(base_path,target,sat)
-    sat_data = pickle.load(open(fname,"rb"))
-    # datetime
-    date = [datetime.datetime.fromtimestamp(d['timestamp']) for d in sat_data]
-    # dT
-    dT = [d['dT'] for d in sat_data]
-    # add to data
-    data[sat] = (date,dT)
-    
-  return data
-
 
 
 def define_plot_space():
@@ -57,36 +33,23 @@ def define_plot_space():
   return chart
 
   
-  
-def plot_time_series_lines(chart,data):
+def plot_time_series(chart,data):
   """
-  Plots all time series together using single trend line
+  Plots RGB time series
   """
-     
-  dates = []
-  values = []
   
-  for sat in ['L4','L5','L7','L8','AST']:
-    
-    if data[sat][0]:
-      dates += data[sat][0]
-      values += data[sat][1]
-        
-  #chronologic sort
-  chronological = sorted(zip(dates,values), key=lambda x: x[0])
-  dates = [x[0] for x in chronological]
-  values = [x[1] for x in chronological]
+  dT = [d['dT'] for d in data]
   
-  chart.plot(dates,values,'k')  
+  # Dates
+  datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
+                
+  # Trend line
+  chart.plot(datetimes,dT,'k')  
   
-
+  # Satellite symbols
+  satellites = [d['satellite'] for d in data]
   
-def plot_satellite_points(chart,data):
-  """
-  Overplots satellite data points
-  """
-    
-  satellite_symbol = {
+  satellite_symbols = {
                       'L4':'s',
                       'L5':'*',
                       'L7':'o',
@@ -94,31 +57,21 @@ def plot_satellite_points(chart,data):
                       'AST':'^',
                       }
   
-  for sat in data.keys():
-    symbol = satellite_symbol[sat]
-     
-    date = data[sat][0]
-    value = data[sat][1]
-    
-    chart.plot(date,value,'k'+symbol)
-   
+  for i in range(len(satellites)):
+    symbol = satellite_symbols[satellites[i]]
+    chart.plot(datetimes[i],dT[i],symbol+'k')
+
 
 
 def main():
   
   target = 'Aoba'
   
-  satellites = ['L4','L5','L7','L8','AST']
-  
-  data = load_data(target,satellites)
+  data = chronological_data(target)
   
   chart = define_plot_space()
-    
-  # plot trend line (all satellites)
-  plot_time_series_lines(chart,data)
-  
-  # plot unique symbols for each satellite
-  plot_satellite_points(chart,data)
+
+  plot_time_series(chart,data)
    
 
 if __name__ == '__main__':
