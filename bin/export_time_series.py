@@ -1,21 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-export_ASTER_time_series.py, Sam Murphy (2017-01-02)
+export_time_series.py
 
-This is a Google Earth Engine task manager. It sends lake data to a 
-Google Drive folder called 'Ldata_{target}'
-
-OUTPUT
--------------------------------------------------------------------------------
-- radiance (visible, nir, swir and tir)
-- lake pixel count
-- thermal infrared brightness temperature
-- water vapour and ozone
-
-NOTE
--------------------------------------------------------------------------------
-ASTER processing is separated from Landsat due to differences in operational
-functionality of these missions. ASTER has separate subsystems which can be
-on/off and have dynamic gain coefficients.
+Created on Sat Feb  4 09:17:54 2017
+@author: sam
 """
 
 import ee
@@ -23,7 +12,8 @@ from preprocess_ASTER import Aster
 from masks import Mask
 from lake_analyses import LakeAnalysis
 from atmospheric import Atmospheric
-
+import preprocess_LANDSAT
+from LEDAPS import Ledaps
 
 def color_metrics(toa):
     """
@@ -50,15 +40,41 @@ def color_metrics(toa):
     metrics = ee.Dictionary(metrics).set('3D',HSV)
         
     return metrics
+
+
+class brightnessTemperature():
+  
+  def ASTER(rad):
+    BTs = Aster.temperature.fromRad(rad)# all BTs (for each TIR waveband)
+    BT14 = ee.Image(BTs).select('BT14') # just band 14 (11.3 microns) 
     
-def brightnessTemperature(rad):
+    return(BT14)
+
+  def Landsat(toa):
+    
+    BT = ee.Image(ee.Dictionary(toa).get('tir')).select('tir1') 
   
-  BTs = Aster.temperature.fromRad(rad)# all BTs (for each TIR waveband)
-  BT14 = ee.Image(BTs).select('BT14') # just band 14 (11.3 microns) 
+    return BT
   
-  return(BT14)
+
+class preprocess():
   
- 
+  def ASTER(img):
+    
+    rad = Aster.radiance.fromDN(img)     # at-sensor radiance
+    toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
+    BT  = brightnessTemperature(rad)     # brightness temperature, single band
+    
+    return (rad, toa, BT)
+
+  def Landsat(img):
+
+    rad = preprocess_LANDSAT.toRad(img) 
+    toa = preprocess_LANDSAT.toToa(img) 
+    BT  = brightnessTemperature(toa)
+    
+    return (rad, toa, BT)
+
 # extracts data from an image (will be mapped over collection)
 def extraction(geom):
   """
@@ -70,10 +86,7 @@ def extraction(geom):
     Preprocesses scenes, applies masks, extracts radiance data and pixel counts
     """
      
-    # preprocessing
-    rad = Aster.radiance.fromDN(img)     # at-sensor radiance
-    toa = Aster.reflectance.fromRad(rad) # top of atmosphere reflectance
-    BT  = brightnessTemperature(rad)     # brightness temperature, single band
+    rad, toa, BT = ee.Algorithms.If(ee.List([sat]).contains('AST'),preprocess.ASTER(img),preprocess.Landsat(img))
     
     # vnir color metrics
     color = color_metrics(toa.get('vnir'))
@@ -108,46 +121,3 @@ def extraction(geom):
     return ee.Feature(geom,result)
     
   return extract_data
-  
-  
-def main():
-  
-  # start Earth Engine
-  ee.Initialize()
-  
-  # target lake  
-  target = 'Aoba'
- 
-  # geometry (crater outline)
-  geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
-    .filter(ee.Filter.equals('name', target))\
-    .geometry()
-  
-  # image collection
-  aster = ee.ImageCollection('ASTER/AST_L1T_003')\
-    .filterBounds(geom.centroid())\
-    .filterDate('1900-01-01','2016-01-01')\
-    .filter(ee.Filter.And(\
-      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B01'),\
-      ee.Filter.listContains('ORIGINAL_BANDS_PRESENT', 'B10')\
-      ))
-    #.filterMetadata('system:index','equals','20080506231313')
-      
-  # image collection size
-  print('count = ',aster.aggregate_count('system:index').getInfo())
-  
-  # mapping function
-  extract_data = extraction(geom)
-  
-  # feature collection of results
-  data = aster.map(extract_data)
-  
-  # export to table
-  ee.batch.Export.table.toDrive(collection = data,\
-                                description = 'AST_'+target,\
-                                folder = 'Ldata_'+target,\
-                                fileFormat= 'GeoJSON'\
-                                ).start()
-
-if __name__ == '__main__':
-  main()

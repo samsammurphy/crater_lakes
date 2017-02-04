@@ -106,12 +106,12 @@ def extraction(geom):
     return ee.Feature(geom,data)
   return extract_data
   
-def main():
+def LANDSAT_export(target):
 
   # start Earth Engine
   ee.Initialize()
   
-  target = 'Aoba'
+#  target = 'Ruapehu'
   
   # geometry (crater box)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
@@ -126,7 +126,7 @@ def main():
   })
   
   # satellite missions
-  sats = ['L8']#,'L5','L7','L8']
+  sats = ['L8']
   
   for sat in sats:
       
@@ -149,9 +149,9 @@ def main():
                                   fileFormat= 'GeoJSON'\
                                   ).start()
 
-
-if __name__ == '__main__':
-  main()
+#
+#if __name__ == '__main__':
+#  main()
 
 
 
