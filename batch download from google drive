@@ -1,0 +1,7 @@
+Get the ID of the LakesData directory
+
+gdrive list --query "name contains 'LakesData'"
+
+Then paste it in here
+
+gdrive download -r [ID]

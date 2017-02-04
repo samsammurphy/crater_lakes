@@ -18,7 +18,7 @@ fname = '/home/sam/Desktop/volcanoes_to_get.txt'
 vfile = open(fname, "r")
 for i, line in enumerate(vfile):
   volcano_name = line.strip('\n')
-  if i <= 0:
+  if i <= 9999:
     print(volcano_name)
     ASTER_export(volcano_name)
   #LANDSAT_export(volcano_name)
