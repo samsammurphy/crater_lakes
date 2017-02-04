@@ -8,7 +8,7 @@ Reads spectra from the ASTER Spectral Library
 import glob
 import os
 import re
-from matplotlib import pylab as plt
+import matplotlib.pylab as plt
 
 # finds all spectra in a given group
 def find_spectra(spectral_group):
