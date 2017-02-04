@@ -1,5 +1,3 @@
-Carran-Los_Venados
-Chichon_El
 Colima
 Cosiguina
 Crater_Lake
@@ -57,3 +55,4 @@ Zao
 Zavaritski_Caldera
 Askja
 Cabalian
+Carran-Los_Venados

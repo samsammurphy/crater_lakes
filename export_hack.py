@@ -14,11 +14,11 @@ from export_LANDSAT_time_series import LANDSAT_export
 
 # volcano names
 #fname = '/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt'
-fname = '/home/sam/Desktop/volcanoes_to_get.txt'
+fname = '/home/sam/git/crater_lakes/volcanoes_to_get.txt'
 vfile = open(fname, "r")
 for i, line in enumerate(vfile):
   volcano_name = line.strip('\n')
-  if i <= 9999:
+  if i <= 5:
     print(volcano_name)
     ASTER_export(volcano_name)
   #LANDSAT_export(volcano_name)
