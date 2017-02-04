@@ -126,7 +126,7 @@ def LANDSAT_export(target):
   })
   
   # satellite missions
-  sats = ['L8']
+  sats = ['L4','L5','L7','L8']
   
   for sat in sats:
       

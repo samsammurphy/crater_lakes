@@ -71,7 +71,7 @@ def plot_time_series(chart,data):
 
 def main():
   
-  target = 'Aoba'
+  target = 'Kelut'
   
   data = chronological_data(target)
   
