@@ -13,7 +13,7 @@ Created on Sat Feb  4 20:10:52 2017
 
 import os
 
-directory = '/home/sam/git/crater_lakes/atmcorr/lake_data/LakesData'
+directory = '/home/sam/git/crater_lakes/atmcorr/lake_data'
 subpaths = [x[0] for x in os.walk(directory)][1:]
 
 for subpath in subpaths:

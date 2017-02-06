@@ -22,5 +22,5 @@ for i, line in enumerate(vfile):
   if i <= 10:
     print(volcano_name)
     ASTER_export(volcano_name)
-    time.sleep(120)
+    #time.sleep(120)
   #LANDSAT_export(volcano_name)

@@ -14,9 +14,11 @@ Created on Sat Feb  4 20:27:40 2017
 import os
 import glob
 
-directory = '/home/sam/git/crater_lakes/atmcorr/lake_data/LakesData'
+directory = '/home/sam/git/crater_lakes/atmcorr/lake_data'
 subpaths = [x[0] for x in os.walk(directory)][1:]
+subdirs = [os.path.basename(sub) for sub in subpaths]
 
+# check that directories contain files for each satellite mission
 for subpath in subpaths:
   
   files = glob.glob(subpath+'/*.geojson')
@@ -31,3 +33,14 @@ for subpath in subpaths:
     if not 'L8_' in satnames: print('L8 missing')
   else:
     print('no files found in: '+subpath)
+    
+# volcano_names
+volcano_names = []
+f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
+for line in f:
+  volcano_names.append(line.rstrip())
+
+# check directory exist for each volcano name
+for name in volcano_names:
+  if name not in subdirs:
+    print('missing directory for: '+name)
