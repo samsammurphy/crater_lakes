@@ -10,12 +10,13 @@ Created on Sat Feb  4 12:24:19 2017
 
 from atmcorr_lake_time_series import run_atmcorr
 
-target = 'Akita-Yake-yama'
+targets = ['Poas','Kusatsu-Shirane','Copahue','Aso']
 
-try:
-  run_atmcorr(target)
-except:
-  pass
+for target in targets:
+  try:
+    run_atmcorr(target)
+  except:
+    pass
 
 
 

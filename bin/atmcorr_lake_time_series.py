@@ -125,7 +125,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
   
   for i, feature in enumerate(features): # enumerate for debugging only
     
-    print(satellite, '{} of {}'.format(i,len(features)))
+    print(target, satellite, '{} of {}'.format(i,len(features)))
     
     properties = feature['properties']
     

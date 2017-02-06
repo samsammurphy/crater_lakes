@@ -15,8 +15,8 @@ import os
 import glob
 
 directory = '/home/sam/git/crater_lakes/atmcorr/lake_data'
-subpaths = [x[0] for x in os.walk(directory)][1:]
-subdirs = [os.path.basename(sub) for sub in subpaths]
+subpaths = sorted([x[0] for x in os.walk(directory)][1:])
+subdirs = sorted([os.path.basename(sub) for sub in subpaths])
 
 # check that directories contain files for each satellite mission
 for subpath in subpaths:
