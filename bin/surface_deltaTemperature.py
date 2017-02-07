@@ -138,20 +138,14 @@ def planck_gradient(wavelength):
   return m
 
   
-def surface_deltaTemperature(tir, satellite):
+def surface_deltaTemperature(tir_lake, tir_bkgd, central_wavelength):
   """
   Estimate the difference in temperature between two targets in an image.
   Assumes that they are 1) blackbodies, 2) have same path radiance
   """
   
-  # 11 micron radiance
-  if satellite == 'AST':
-    tir_11micron = 'tir5'
-  else:
-    tir_11micron = 'tir1'
-  
   # delta at-sensor radiance
-  dL = tir['lake_rad'][tir_11micron] - tir['bkgd_rad'][tir_11micron]
+  dL = tir_lake - tir_bkgd
   
   # estimate transmissivity from water vapour
   tau = waterVapour_to_transmissivity(water_vapour)
@@ -160,7 +154,7 @@ def surface_deltaTemperature(tir, satellite):
   dB = dL / tau
   
   # estimate planck gradient
-  m = planck_gradient(11)
+  m = planck_gradient(central_wavelength)
   
   # temperature difference
   dT = dB/m

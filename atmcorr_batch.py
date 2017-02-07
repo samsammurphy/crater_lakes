@@ -10,18 +10,19 @@ Created on Sat Feb  4 12:24:19 2017
 
 from atmcorr_lake_time_series import run_atmcorr
 
-#TODO run through all volcano names, look for satellite files in lake data, if atmcorr for that satellite doesnt already exist then run_atmcorr for that satellite onlu
+# volcano_names
+volcano_names = []
+f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
+for line in f:
+  volcano_names.append(line.rstrip())
 
-
-targets = ['Poas','Kusatsu-Shirane','Copahue','Aso']
-
-for target in targets:
+# check directory exist for each volcano name
+for target in volcano_names:
+  print(target)
   try:
-    run_atmcorr(target)
+    run_atmcorr(target,force=False)
   except:
     pass
-
-
 
 
 

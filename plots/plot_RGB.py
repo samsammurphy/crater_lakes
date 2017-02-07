@@ -58,7 +58,7 @@ def plot_time_series(chart,data):
                       'L5':'*',
                       'L7':'o',
                       'L8':'D',
-                      'AST':'^',
+                      #'AST':'^',
                       }
   
   for i in range(len(satellites)):
@@ -71,7 +71,7 @@ def plot_time_series(chart,data):
 
 def main():
   
-  target = 'Kelut'
+  target = 'Poas'
   
   data = chronological_data(target)
   

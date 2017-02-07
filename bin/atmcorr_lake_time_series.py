@@ -20,7 +20,8 @@ import pickle
 import numpy as np
 from target_altitude import target_altitude
 from surface_reflectance import surface_reflectance
-from surface_deltaTemperature import surface_deltaTemperature
+from thermal_atmcorr import thermal_atmcorr
+
 
 
 def load_iLUTs(satellite,aerosol):
@@ -98,7 +99,7 @@ def estimate_lake_AOT(vnir,swir,params, iLUTs):
   
   return match
 
-  
+    
   
 def atmospherically_correct_time_series(target, satellite, aerosol):
   """
@@ -168,8 +169,9 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       
       params['AOT'] = estimate_lake_AOT(vnir,swir,params,iLUTs)
       
-      # surface reflectances (defailt vnir = None)
+      # default None (i.e. blue sometimes missing, T might be overkill?)
       sr = {'blue':None, 'green':None,'red':None,'nir':None}
+      T = {'BT_lake':None,'BT_bkgd':None,'dBT':None,'dTsurface':None}
 
       # VNIR    
       for band in ['blue','green','red','nir']:
@@ -189,7 +191,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
       
       # TIR
         try:
-          dT = surface_deltaTemperature(tir, satellite)
+          T = thermal_atmcorr(tir,satellite)
         except:
           pass
       
@@ -201,7 +203,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
                 'fileID': feature['id'],
                 'timestamp': unix_time, 
                 'sr':sr,
-                'dT':dT,
+                'T':T,
                 'lake_size':properties['vnir']['pixel_counts']['lake'],
                 'cloud':properties['vnir']['pixel_counts']['cloud']
                 }
@@ -215,31 +217,29 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
   results = sorted(results,key=chronological)
   
   return results
-  
-def pickle_results(results, target, satellite):
-  
-  outdir = "/home/sam/git/crater_lakes/atmcorr/results/"+target
-  try:
-    os.chdir(outdir)
-  except:
-    os.mkdir(outdir)
-    os.chdir(outdir)
-    
-  pickle.dump(results,open("{}_{}.p".format(target,satellite),"wb"))
-
-
-  
-def run_atmcorr(target):
-  
-  #target = 'Agua_de_Pau'
-  
+   
+def run_atmcorr(target, force=False):
+   
   aerosol = 'MA'# TODO CO LUTs needs interpolation for ASTER and other LANDSATs
    
   for satellite in ['L4','L5','L7','L8','AST']:
-   
-    results = atmospherically_correct_time_series(target, satellite, aerosol)
     
-    pickle_results(results, target, satellite)
+    # satellite directory
+    outdir = "/home/sam/git/crater_lakes/atmcorr/results/"+target
+    try:
+      os.chdir(outdir)
+    except:
+      os.mkdir(outdir)
+      os.chdir(outdir)
+    
+    # check results file not exists already
+    resultsFilename = "{}_{}.p".format(target,satellite)
+    if not os.path.isfile(resultsFilename) or force:
       
-#if __name__ == '__main__':
-#  main()
+      print(resultsFilename)
+      results = atmospherically_correct_time_series(target, satellite, aerosol)
+      pickle.dump(results,open(resultsFilename,"wb"))
+      
+    else:
+      print('results file already exists: '+resultsFilename)
+      

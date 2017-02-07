@@ -28,10 +28,10 @@ def chronological_data(target):
   L5 = load_sat('L5')  
   L7 = load_sat('L7')  
   L8 = load_sat('L8')  
-  AST = load_sat('AST')  
+  #AST = load_sat('AST')  
   
   # chain all satellites together
-  data = list(itertools.chain(L4,L5,L7,L8,AST))
+  data = list(itertools.chain(L4,L5,L7,L8))#,AST
   
   # sort by timestamp
   def timestamp(dictionary): return dictionary['timestamp']

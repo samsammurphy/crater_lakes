@@ -38,7 +38,7 @@ def plot_time_series(chart,data):
   Plots time series
   """
   
-  dT = [d['dT'] for d in data]
+  dT = [d['T']['dBT'] for d in data]
   
   # Dates
   datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
@@ -65,7 +65,7 @@ def plot_time_series(chart,data):
 
 def main():
   
-  target = 'Kelut'
+  target = 'Poas'
   
   data = chronological_data(target)
   
