@@ -45,7 +45,7 @@ def plot_time_series(chart,data):
   # Dates
   datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
                 
-  # Trend line
+  # Trend lineChicon_El
   chart.plot(datetimes,red,'r')  
   chart.plot(datetimes,green,'g')
   chart.plot(datetimes,blue,'b')    
@@ -69,15 +69,10 @@ def plot_time_series(chart,data):
       chart.plot(datetimes[i],blue[i],symbol+'b')
     
 
-def main():
-  
-  target = 'Poas'
-  
+def plot_RGB(target):
+   
   data = chronological_data(target)
   
   chart = define_plot_space()
 
   plot_time_series(chart,data)
-  
-if __name__ == '__main__':
-  main()  

@@ -14,7 +14,7 @@ import colorsys
 import datetime
 
   
-target = 'Poas'
+target = 'Kelut'
 data = chronological_data(target)
 
 outdir = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)

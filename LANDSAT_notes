@@ -1,7 +1,0 @@
-SOLUTION:
-
-Separate Landsat into VNIR, SWIR and TIR images.
-
-Think about a neat way (e.g. rename all bands in one go, then pop off vnir, swir and tir)
-
-
