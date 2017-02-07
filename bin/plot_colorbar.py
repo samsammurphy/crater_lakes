@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_colorbar_v2.py
-
-Created on Mon Feb  6 19:44:13 2017
-
+plot_colorbar_v3.py
+Created on Mon Feb  6 20:26:00 2017
 @author: sam
 """
+
 
 from load_atmcorr import chronological_data
 import numpy as np
@@ -39,25 +38,20 @@ b = np.interp(alltimestamps, timestamps, blue)
 g = np.interp(alltimestamps, timestamps, green)
 r = np.interp(alltimestamps, timestamps, red)
 
-# create image
-arr = np.array(list(zip(r,g,b)))
-img = []  # repeat over a bunch of 'rows'
+# time series plot
+plt.xlim(start,stop)
 for i in range(numdays):
-  img.append(arr)
-
-plt.imshow(img)
-plt.axis("off")
+  plt.plot([alldays[i],alldays[i]],[0,1],color=(r[i],g[i],b[i]))
+plt.yticks([])
 plt.show()
 
-# plot graph for comparison
+# time series plot
 plt.xlim(start,stop)
-
-plt.plot(alldays,blue_interp,'b-')
-plt.plot(alldays,green_interp,'g-')
-plt.plot(alldays,red_interp,'r-')
+plt.plot(alldays,b,'b-')
+plt.plot(alldays,g,'g-')
+plt.plot(alldays,r,'r-')
 
 plt.plot(datetimes,blue,'bo')
 plt.plot(datetimes,green,'go')
 plt.plot(datetimes,red,'ro')
-
 plt.show()

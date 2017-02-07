@@ -63,16 +63,10 @@ def plot_time_series(chart,data):
 
 
 
-def main():
-  
-  target = 'Poas'
+def plot_dT(target):
   
   data = chronological_data(target)
   
   chart = define_plot_space()
 
   plot_time_series(chart,data)
-   
-
-if __name__ == '__main__':
-  main()  
