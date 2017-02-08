@@ -8,15 +8,10 @@ Created on Mon Feb  6 20:26:00 2017
 """
 
 
-from load_atmcorr import chronological_data
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import datetime
 import time
-
-
-import datetime
 
  
 def plot_color_timeseries(ax, data, start, stop):
@@ -37,7 +32,7 @@ def plot_color_timeseries(ax, data, start, stop):
   
   # extract timestamps
   timestamps = [d['timestamp'] for d in data]
-
+  
   # create higher resolution timestamps
   numdays = (stop-start).days
   hires_dates = [start + datetime.timedelta(days=x) for x in range(0, numdays)]
@@ -49,7 +44,6 @@ def plot_color_timeseries(ax, data, start, stop):
   R = np.interp(hires_time, timestamps, r)
 
   # time series plot
-  for i in len(hires_dates):
-    plt.plot([hires_dates[i],hires_dates[i]],[0,1],color=(R[i],G[i],B[i]))
-  plt.yticks([])
-  plt.show()
+  for i, hidate in enumerate(hires_dates):
+    ax.plot([hidate,hidate],[0,1],color=(R[i],G[i],B[i]))
+  ax.yticks([])
