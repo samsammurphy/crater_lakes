@@ -13,37 +13,48 @@ import csv
 import colorsys
 import datetime
 
+
+#target = 'Kelut'
+
+# all targets
+f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
+for line in f:
   
-target = 'Kelut'
-data = chronological_data(target)
+  target = line.rstrip()
 
-outdir = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
-
-with open(outdir+target+'.csv', 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(['year, month, day, hour, minute,timestamp,satellite, fileID,'\
-    'red,green,blue,H,S,V,BT_lake,BT_bkgd,dBT,dT_surface,lake_size'])
-    for d in data:      
-      # read visible
-      r = d['sr']['red']
-      g = d['sr']['green']
-      b = d['sr']['blue']
-      # read thermal
-      BTlake = d['T']['BT_lake']
-      BTbkgd = d['T']['BT_bkgd']
-      dBT = d['T']['dBT']
-      dTsurface = d['T']['dTsurface']
-      
-      # datetime
-      date = datetime.datetime.fromtimestamp(d['timestamp'])
-      if b:      
-        H, S, V = colorsys.rgb_to_hsv(r,g,b)    
-        writer.writerow([date.year,date.month,date.day,date.hour,date.minute,\
-                         d['timestamp'],d['satellite'],d['fileID'],\
-                         r,g,b,H,S,V,\
-                         BTlake,BTbkgd,dBT,dTsurface,\
-                         d['lake_size']])
- 
-
-#      saturation2D = abs(r-g)
-#      value2D = max(r,g)
+  try:
+    
+    data = chronological_data(target)
+    
+    outdir = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
+    
+    with open(outdir+target+'.csv', 'w') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(['year, month, day, hour, minute,timestamp,satellite, fileID,'\
+        'red,green,blue,H,S,V,BT_lake,BT_bkgd,dBT,dT_surface,lake_size'])
+        for d in data:      
+          # read visible
+          r = d['sr']['red']
+          g = d['sr']['green']
+          b = d['sr']['blue']
+          # read thermal
+          BTlake = d['T']['BT_lake']
+          BTbkgd = d['T']['BT_bkgd']
+          dBT = d['T']['dBT']
+          dTsurface = d['T']['dTsurface']
+          
+          # datetime
+          date = datetime.datetime.fromtimestamp(d['timestamp'])
+          if b:      
+            H, S, V = colorsys.rgb_to_hsv(r,g,b)    
+            writer.writerow([date.year,date.month,date.day,date.hour,date.minute,\
+                             d['timestamp'],d['satellite'],d['fileID'],\
+                             r,g,b,H,S,V,\
+                             BTlake,BTbkgd,dBT,dTsurface,\
+                             d['lake_size']])
+  except:
+    pass
+   
+print('done')
+##      saturation2D = abs(r-g)
+##      value2D = max(r,g)

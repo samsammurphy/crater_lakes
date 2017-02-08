@@ -7,52 +7,24 @@ Plots visible surface reflectance for all satellites onto a chart (i.e. 'axes')
 
 """
 
-from load_atmcorr import chronological_data
-import datetime
-from matplotlib import pylab as plt
-
-
-def define_plot_space():
-  
-  # figure instance
-  fig = plt.figure()
-  chart = fig.add_subplot(1,1,1) # a.k.a. 'axes'
-  
-  # label axes
-  chart.set_xlabel('Date')
-  chart.set_ylabel('Reflectance')
-  
-  # x limits (time period)
-  start = datetime.datetime(2000,1,1)
-  stop  = datetime.datetime(2016,1,1)
-  chart.set_xlim(start, stop)
-  
-  # y limits (reflectance)
-  chart.set_ylim(0,0.6)
-  
-  return chart
- 
-def plot_time_series(chart,data):
+def plot_RGB(ax, data, start, stop):
   """
   Plots RGB time series
   """
   
-  # Color
-  blue = [d['sr']['blue'] for d in data]
-  green = [d['sr']['green'] for d in data]
-  red = [d['sr']['red'] for d in data]
+  # set time period (x axis)
+  ax.set_xlim(start, stop)
   
-  # Dates
-  datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
-                
-  # Trend lineChicon_El
-  chart.plot(datetimes,red,'r')  
-  chart.plot(datetimes,green,'g')
-  chart.plot(datetimes,blue,'b')    
+  # set y limit
+  ax.set_ylim(0,1)
+                 
+  # trend line
+  ax.plot(data['datetimes'],data['r'],'r')  
+  ax.plot(data['datetimes'],data['g'],'g')
+  ax.plot(data['datetimes'],data['b'],'b')    
   
-  # Satellite symbols
-  satellites = [d['satellite'] for d in data]
-  
+  # satellite symbols
+  satellites = data['satellites']
   satellite_symbols = {
                       'L4':'s',
                       'L5':'*',
@@ -60,19 +32,11 @@ def plot_time_series(chart,data):
                       'L8':'D',
                       #'AST':'^',
                       }
-  
   for i in range(len(satellites)):
     symbol = satellite_symbols[satellites[i]]
-    chart.plot(datetimes[i],red[i],symbol+'r')
-    chart.plot(datetimes[i],green[i],symbol+'g')
-    if blue[i]:
-      chart.plot(datetimes[i],blue[i],symbol+'b')
+    ax.plot(data['datetimes'][i],data['r'][i],symbol+'r')
+    ax.plot(data['datetimes'][i],data['g'][i],symbol+'g')
+    ax.plot(data['datetimes'][i],data['b'][i],symbol+'b')
     
-
-def plot_RGB(target):
-   
-  data = chronological_data(target)
-  
-  chart = define_plot_space()
-
-  plot_time_series(chart,data)
+  # y label
+  ax.set_ylabel('reflectance')
