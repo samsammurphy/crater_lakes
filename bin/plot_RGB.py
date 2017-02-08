@@ -7,8 +7,6 @@ Plots visible surface reflectance for all satellites onto a chart (i.e. 'axes')
 
 """
 
-import datetime
-
 def plot_RGB(ax, data, start, stop):
   """
   Plots RGB time series
@@ -17,24 +15,16 @@ def plot_RGB(ax, data, start, stop):
   # set time period (x axis)
   ax.set_xlim(start, stop)
   
-  # set y limit?
-  #ax.set_ylim(0,0.6)
-  
-  # extract RGB
-  blue = [d['sr']['blue'] for d in data]
-  green = [d['sr']['green'] for d in data]
-  red = [d['sr']['red'] for d in data]
-  
-  # dates
-  datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
-                
-  # Trend line
-  ax.plot(datetimes,red,'r')  
-  ax.plot(datetimes,green,'g')
-  ax.plot(datetimes,blue,'b')    
+  # set y limit
+  ax.set_ylim(0,1)
+                 
+  # trend line
+  ax.plot(data['datetimes'],data['r'],'r')  
+  ax.plot(data['datetimes'],data['g'],'g')
+  ax.plot(data['datetimes'],data['b'],'b')    
   
   # satellite symbols
-  satellites = [d['satellite'] for d in data]
+  satellites = data['satellites']
   satellite_symbols = {
                       'L4':'s',
                       'L5':'*',
@@ -44,7 +34,9 @@ def plot_RGB(ax, data, start, stop):
                       }
   for i in range(len(satellites)):
     symbol = satellite_symbols[satellites[i]]
-    ax.plot(datetimes[i],red[i],symbol+'r')
-    ax.plot(datetimes[i],green[i],symbol+'g')
-    ax.plot(datetimes[i],blue[i],symbol+'b')
+    ax.plot(data['datetimes'][i],data['r'][i],symbol+'r')
+    ax.plot(data['datetimes'][i],data['g'][i],symbol+'g')
+    ax.plot(data['datetimes'][i],data['b'][i],symbol+'b')
     
+  # y label
+  ax.set_ylabel('reflectance')

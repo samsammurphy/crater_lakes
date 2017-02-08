@@ -7,9 +7,6 @@ Plots the difference temperature (dT) between the lake and the background
 
 """
 
-import datetime
-
- 
 def plot_dT(ax, data, start, stop):
   """
   Plots delta Temperature time series
@@ -21,17 +18,10 @@ def plot_dT(ax, data, start, stop):
   # set y limit?
   #ax.set_ylim(0,0.6)
   
-  # extract dT
-  dT = [d['T']['dBT'] for d in data]
-  
-  # dates
-  datetimes = [datetime.datetime.fromtimestamp(d['timestamp']) for d in data]
-                
   # Trend line
-  ax.plot(datetimes,dT,'k')  
+  ax.plot(data['datetimes'],data['dT'],'k')  
 
   # satellite symbols
-  satellites = [d['satellite'] for d in data]
   satellite_symbols = {
                       'L4':'s',
                       'L5':'*',
@@ -39,6 +29,10 @@ def plot_dT(ax, data, start, stop):
                       'L8':'D',
                       'AST':'^',
                       }
-  for i in range(len(satellites)):
-    symbol = satellite_symbols[satellites[i]]
-    ax.plot(datetimes[i],dT[i],symbol+'k')
+  for i in range(len(data['satellites'])):
+    symbol = satellite_symbols[data['satellites'][i]]
+    ax.plot(data['datetimes'][i],data['dT'][i],symbol+'k')
+
+  # label axes
+  ax.set_xlabel('Year')
+  ax.set_ylabel(r'$\Delta$T ($^{o}$C)')

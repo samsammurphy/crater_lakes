@@ -12,37 +12,39 @@ Created on Mon Feb  6 20:53:54 2017
 
 import matplotlib.pylab as plt
 import datetime
-from load_atmcorr import chronological_data
+from load_atmcorr import load_plot_data
 from plot_RGB import plot_RGB
-from plot_HSV import plot_HSV
-from plot_dT import plot_dT
 from plot_color_timeseries import plot_color_timeseries
+from plot_greyness_and_value import plot_greyness_and_value
+from plot_dT import plot_dT
+import os
 
 
-
-# load data
-target = 'Poas'
-data = chronological_data(target)            
+for target in ['Copahue','Ijen','Kelimutu','Kusatsu-Shirane','Rincon_de_la_Vieja','Ruapehu']:
                     
-# figure with subplots
-fig = plt.figure(figsize=(8,12))
-ax1 = fig.add_subplot(4,1,1) # two rows, one column, first plot
-ax2 = fig.add_subplot(4,1,2) # two rows, one column, first plot
-ax3 = fig.add_subplot(4,1,3) # two rows, one column, first plot
-ax4 = fig.add_subplot(4,1,4) # two rows, one column, first plot
-
-# time period
-start = datetime.datetime(2000,1,1)
-stop  = datetime.datetime(2016,1,1)        
-
-# rgb
-plot_RGB(ax1, data, start, stop)
-
-# colorbar
-plot_color_timeseries(ax2, data, start, stop)
-
-# hsv
-plot_HSV(ax3, data, start, stop)
-
-# dT
-plot_dT(ax4, data, start, stop)
+  # figure with subplots
+  fig = plt.figure(figsize=(8,12))
+  ax1 = fig.add_subplot(4,1,1) # four rows, one column, first plot                   
+  ax2 = fig.add_subplot(4,1,2) 
+  ax3 = fig.add_subplot(4,1,3) 
+  ax4 = fig.add_subplot(4,1,4)
+  
+  # time period
+  start = datetime.datetime(1985,1,1)
+  stop  = datetime.datetime(2016,1,1)   
+  
+  # load data
+  data = load_plot_data(target)
+  
+  # plot
+  plot_RGB(ax1, data, start, stop)
+  plot_color_timeseries(ax2, data, start, stop, 10)
+  plot_greyness_and_value(ax3, data, start, stop)
+  plot_dT(ax4, data, start, stop)
+  
+  
+  outdir = '/home/sam/git/crater_lakes/plots/'+target
+  if not os.path.exists(outdir):
+    os.mkdir(outdir)
+  os.chdir(outdir)
+  plt.savefig(target+'.png')

@@ -9,6 +9,7 @@ Loads atmospheric correction results for all satellites in chronological order
 
 import pickle
 import itertools
+import datetime
 
 
 def chronological_data(target):
@@ -38,3 +39,28 @@ def chronological_data(target):
   data = sorted(data,key=timestamp)
   
   return data
+
+
+def load_plot_data(target):
+  """
+  Forces rgb to be between 0 and 1
+  """
+  data = chronological_data(target)   
+  r = [sorted([0,d['sr']['red'],1])[1] for d in data]
+  g = [sorted([0,d['sr']['green'],1])[1] for d in data]
+  b = [sorted([0,d['sr']['blue'],1])[1] for d in data]
+  dT = [d['T']['dBT'] for d in data]
+  timestamps = [d['timestamp'] for d in data]   
+  datetimes = [datetime.datetime.fromtimestamp(t) for t in timestamps]
+  satellites = [d['satellite'] for d in data]
+  
+  return {
+      'r':r,
+      'g':g,
+      'b':b,
+      'dT':dT,
+      'timestamps':timestamps,
+      'datetimes':datetimes,    
+      'satellites':satellites
+      }
+  
