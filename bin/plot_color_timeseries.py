@@ -25,7 +25,7 @@ def plot_color_timeseries(ax, data, start, stop, delta):
    
   # create higher resolution timestamps
   numdays = (stop-start).days
-  samples = range(0, numdays+5, delta)
+  samples = range(0, numdays+delta, delta)
   hires_dates = [start + datetime.timedelta(days=x) for x in samples]
   hires_time = [time.mktime(date.timetuple()) for date in hires_dates]
 

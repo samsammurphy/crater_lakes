@@ -1,2 +1,2 @@
-"year, month, day, hour, minute,timestamp,satellite, fileID,red,green,blue,H,S,V,BT_lake,BT_bkgd,dBT,dT_surface,lake_size"
+year,month,day,hour,minute,timestamp,satellite,fileID,red,green,blue,H,S,V,BT_lake,BT_bkgd,dBT,dT_surface,lake_size
 1999,8,14,11,37,934666678.041,L7,LE70700801999226EDC00,0.0130276555098,0.0298619292456,0.00319897975452,0.271895545798,0.892874310691,0.0298619292456,15.279940881,14.7855867589,0.494354122115,0.487046416386,651.0

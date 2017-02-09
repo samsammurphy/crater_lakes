@@ -30,8 +30,9 @@ for line in f:
     
     with open(outdir+target+'.csv', 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(['year, month, day, hour, minute,timestamp,satellite, fileID,'\
-        'red,green,blue,H,S,V,BT_lake,BT_bkgd,dBT,dT_surface,lake_size'])
+        writer.writerow(['year','month','day','hour','minute','timestamp',\
+                         'satellite','fileID','red','green','blue','H','S','V',\
+                         'BT_lake','BT_bkgd','dBT','dT_surface','lake_size'])
         for d in data:      
           # read visible
           r = d['sr']['red']

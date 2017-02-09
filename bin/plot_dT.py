@@ -27,7 +27,7 @@ def plot_dT(ax, data, start, stop):
                       'L5':'*',
                       'L7':'o',
                       'L8':'D',
-                      'AST':'^',
+                      #'AST':'^',
                       }
   for i in range(len(data['satellites'])):
     symbol = satellite_symbols[data['satellites'][i]]
