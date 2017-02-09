@@ -19,9 +19,13 @@ from plot_greyness_and_value import plot_greyness_and_value
 from plot_dT import plot_dT
 import os
 
+# all targets
+#f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
+#for line in f:
+#  target = line.rstrip()
 
-for target in ['Copahue','Ijen','Kelimutu','Kusatsu-Shirane','Rincon_de_la_Vieja','Ruapehu']:
-                    
+for target in ['Lake_Nyos']:
+
   # figure with subplots
   fig = plt.figure(figsize=(8,12))
   ax1 = fig.add_subplot(4,1,1) # four rows, one column, first plot                   
@@ -48,3 +52,5 @@ for target in ['Copahue','Ijen','Kelimutu','Kusatsu-Shirane','Rincon_de_la_Vieja
     os.mkdir(outdir)
   os.chdir(outdir)
   plt.savefig(target+'.png')
+  plt.show()
+#  plt.close(fig)

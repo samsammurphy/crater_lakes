@@ -26,6 +26,6 @@ from export_LANDSAT_time_series import LANDSAT_export
 #    LANDSAT_export(volcano_name)
 
 
-volcano_name = 'Paektu'
+volcano_name = 'Yugama'
 ASTER_export(volcano_name)
 LANDSAT_export(volcano_name)

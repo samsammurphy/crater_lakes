@@ -10,6 +10,7 @@ Loads atmospheric correction results for all satellites in chronological order
 import pickle
 import itertools
 import datetime
+import numpy as np
 
 
 def chronological_data(target):
@@ -43,24 +44,37 @@ def chronological_data(target):
 
 def load_plot_data(target):
   """
-  Forces rgb to be between 0 and 1
+  Handle missing blue, clip rgb between 0 and 1, save to dictionary
   """
-  data = chronological_data(target)   
-  r = [sorted([0,d['sr']['red'],1])[1] for d in data]
-  g = [sorted([0,d['sr']['green'],1])[1] for d in data]
-  b = [sorted([0,d['sr']['blue'],1])[1] for d in data]
-  dT = [d['T']['dBT'] for d in data]
-  timestamps = [d['timestamp'] for d in data]   
-  datetimes = [datetime.datetime.fromtimestamp(t) for t in timestamps]
-  satellites = [d['satellite'] for d in data]
   
+  # load data in chronological order
+  data = chronological_data(target)
+  
+  # create lists
+  r = []
+  g = []
+  b = []
+  dT = []
+  timestamps = []
+  satellites = []
+
+  # avoid None blue, and clip rgb
+  for d in data:
+    if d['sr']['blue']:
+      r.append(np.clip(d['sr']['red'],0,1))
+      g.append(np.clip(d['sr']['green'],0,1))
+      b.append(np.clip(d['sr']['blue'],0,1))
+      dT.append(d['T']['dBT'])
+      timestamps.append(d['timestamp'])
+      satellites.append(d['satellite'])
+
   return {
       'r':r,
       'g':g,
       'b':b,
       'dT':dT,
       'timestamps':timestamps,
-      'datetimes':datetimes,    
+      'datetimes':[datetime.datetime.fromtimestamp(t) for t in timestamps],    
       'satellites':satellites
       }
   
