@@ -43,7 +43,7 @@ def read_csv(target):
     print('File IO error for :'+target)
   
 
-target = 'Aoba'
+target = 'Yugama'
 
 # figure with subplots
 fig = plt.figure(figsize=(8,12))
@@ -71,5 +71,5 @@ if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
 plt.savefig(target+'.png')
-#plt.show()
+plt.show()
 #  plt.close(fig)
