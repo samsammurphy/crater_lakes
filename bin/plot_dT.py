@@ -16,7 +16,7 @@ def plot_dT(ax, data, start, stop):
   ax.set_xlim(start, stop)
   
   # set y limit?
-  #ax.set_ylim(0,0.6)
+  #ax.set_ylim(-20,20)
   
   # Trend line
   ax.plot(data['datetimes'],data['dT'],'k')  
