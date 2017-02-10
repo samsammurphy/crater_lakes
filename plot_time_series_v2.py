@@ -43,7 +43,7 @@ def read_csv(target):
     print('File IO error for :'+target)
   
 
-target = 'Azufral'
+target = 'Kelimutu_c'
 
 # figure with subplots
 fig = plt.figure(figsize=(8,12))
@@ -58,7 +58,7 @@ stop  = datetime.datetime(2016,1,1)
 
 # load data
 data = read_csv(target)
-
+  
 # plot
 plot_RGB(ax1, data, start, stop)
 plot_color_timeseries(ax2, data, start, stop, 10)

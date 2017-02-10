@@ -17,7 +17,7 @@ for line in f:
   volcano_names.append(line.rstrip())
 
 # check directory exist for each volcano name
-for target in ['Yugama']:
+for target in ['Kelimutu_a','Kelimutu_b','Kelimutu_c']:
   print(target)
   try:
     run_atmcorr(target,force=False)
