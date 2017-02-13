@@ -43,33 +43,37 @@ def read_csv(target):
     print('File IO error for :'+target)
   
 
-target = 'Azufral'
+# Data
+targets = ['Azufral','Chichon_El','Copahue','Ijen','Kelimutu_a','Kelimutu_b','Kelimutu_c','Poas','Rincon_de_la_Vieja','Ruapehu','Yugama']
 
-# figure with subplots
-fig = plt.figure(figsize=(8,12))
-ax1 = fig.add_subplot(4,1,1) # four rows, one column, first plot                   
-ax2 = fig.add_subplot(4,1,2) 
-ax3 = fig.add_subplot(4,1,3) 
-ax4 = fig.add_subplot(4,1,4)
+for target in targets:
+  
+  print(target)
 
-# time period
-start = datetime.datetime(1985,1,1)
-stop  = datetime.datetime(2016,1,1)   
-
-# load data
-data = read_csv(target)
-
-# plot
-plot_RGB(ax1, data, start, stop)
-plot_color_timeseries(ax2, data, start, stop, 10)
-plot_greyness_and_value(ax3, data, start, stop)
-plot_dT(ax4, data, start, stop)
-
-
-outdir = '/home/sam/git/crater_lakes/plots/'+target
-if not os.path.exists(outdir):
-  os.mkdir(outdir)
-os.chdir(outdir)
-plt.savefig(target+'.png')
-plt.show()
-#  plt.close(fig)
+  # figure with subplots
+  fig = plt.figure(figsize=(8,12))
+  ax1 = fig.add_subplot(4,1,1) # four rows, one column, first plot                   
+  ax2 = fig.add_subplot(4,1,2) 
+  ax3 = fig.add_subplot(4,1,3) 
+  ax4 = fig.add_subplot(4,1,4)
+  
+  # time period
+  start = datetime.datetime(1985,1,1)
+  stop  = datetime.datetime(2016,1,1)   
+  
+  # load data
+  data = read_csv(target)
+  
+  # plot
+  plot_RGB(ax1, data, start, stop)
+  plot_color_timeseries(ax2, data, start, stop, 10)
+  plot_greyness_and_value(ax3, data, start, stop)
+  plot_dT(ax4, data, start, stop)
+  
+  
+  outdir = '/home/sam/git/crater_lakes/plots/'+target
+  if not os.path.exists(outdir):
+    os.mkdir(outdir)
+  os.chdir(outdir)
+  plt.savefig(target+'_v1.png')
+  plt.close()
