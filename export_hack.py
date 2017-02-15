@@ -13,6 +13,6 @@ from export_ASTER_time_series import ASTER_export
 from export_LANDSAT_time_series import LANDSAT_export
 
 
-volcano_name = 'Kelimutu_c'
+volcano_name = 'Yugama'
 ASTER_export(volcano_name)
 LANDSAT_export(volcano_name)
