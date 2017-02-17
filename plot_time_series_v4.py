@@ -72,7 +72,7 @@ def grey_magenta_cmap():
   return ListedColormap(color_list, name='from_list')
 
 
-target = 'Poas'
+target = 'Ruapehu'
   
 # read excel file
 df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}.xlsx'.format(target))
@@ -145,8 +145,8 @@ outdir = '/home/sam/git/crater_lakes/plots/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
-plt.savefig(target+'_v4.png')
-plt.close()
+#plt.savefig(target+'_v4.png')
+#plt.close()
 
 
 

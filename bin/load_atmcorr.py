@@ -42,39 +42,39 @@ def chronological_data(target):
   return data
 
 
-def load_plot_data(target):
-  """
-  Handle missing blue, clip rgb between 0 and 1, save to dictionary
-  """
-  
-  # load data in chronological order
-  data = chronological_data(target)
-  
-  # create lists
-  r = []
-  g = []
-  b = []
-  dT = []
-  timestamps = []
-  satellites = []
-
-  # avoid None blue, and clip rgb
-  for d in data:
-    if d['sr']['blue']:
-      r.append(np.clip(d['sr']['red'],0,1))
-      g.append(np.clip(d['sr']['green'],0,1))
-      b.append(np.clip(d['sr']['blue'],0,1))
-      dT.append(d['T']['dBT'])
-      timestamps.append(d['timestamp'])
-      satellites.append(d['satellite'])
-
-  return {
-      'r':r,
-      'g':g,
-      'b':b,
-      'dT':dT,
-      'timestamps':timestamps,
-      'datetimes':[datetime.datetime.fromtimestamp(t) for t in timestamps],    
-      'satellites':satellites
-      }
-  
+#def load_plot_data(target):
+#  """
+#  Handle missing blue, clip rgb between 0 and 1, save to dictionary
+#  """
+#  
+#  # load data in chronological order
+#  data = chronological_data(target)
+#  
+#  # create lists
+#  r = []
+#  g = []
+#  b = []
+#  dT = []
+#  timestamps = []
+#  satellites = []
+#
+#  # avoid None blue, and clip rgb
+#  for d in data:
+#    if d['sr']['blue']:
+#      r.append(np.clip(d['sr']['red'],0,1))
+#      g.append(np.clip(d['sr']['green'],0,1))
+#      b.append(np.clip(d['sr']['blue'],0,1))
+#      dT.append(d['T']['dBT'])
+#      timestamps.append(d['timestamp'])
+#      satellites.append(d['satellite'])
+#
+#  return {
+#      'r':r,
+#      'g':g,
+#      'b':b,
+#      'dT':dT,
+#      'timestamps':timestamps,
+#      'datetimes':[datetime.datetime.fromtimestamp(t) for t in timestamps],    
+#      'satellites':satellites
+#      }
+#  
