@@ -52,7 +52,7 @@ def grey_magenta_cmap():
 
 
 # Data
-targets = ['Azufral','Chichon_El','Copahue','Ijen','Kelimutu_a','Kelimutu_b','Kelimutu_c','Poas','Rincon_de_la_Vieja','Ruapehu','Yugama']
+targets = ['Yugama']
 
 for target in targets:
   
@@ -62,7 +62,7 @@ for target in targets:
   
   # set time period
   start = datetime.datetime(1985,1,1)
-  stop  = datetime.datetime(2016,1,1) 
+  stop  = datetime.datetime(2005,1,1) 
   
   # Interpolate RGB over time period
   RGB = interpolate_RGB(D['r'],D['g'],D['b'],D['timestamps'],start,stop)
@@ -120,14 +120,15 @@ for target in targets:
   axT.plot(D['datetimes'],D['dT'],'k-o')
   axT.set_xlabel('Year')
   axT.set_ylabel(r'$\Delta$T ($^{o}$C)')
+  axT.set_xlim(start,stop)
   
   # save
   outdir = '/home/sam/git/crater_lakes/plots/'+target
   if not os.path.exists(outdir):
     os.mkdir(outdir)
   os.chdir(outdir)
-  plt.savefig(target+'_v3.png')
-  plt.close()
+  #plt.savefig(target+'_v3.png')
+  #plt.close()
 
 
 
