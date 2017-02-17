@@ -72,7 +72,7 @@ def grey_magenta_cmap():
   return ListedColormap(color_list, name='from_list')
 
 
-target = 'Yugama'
+target = 'Poas'
   
 # read excel file
 df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}.xlsx'.format(target))
@@ -82,7 +82,7 @@ r,g,b,h,s,v,t,dt,DT = null_handler(df)
 
 # time period define
 start = datetime.datetime(1985,1,1)
-stop  = datetime.datetime(2005,1,1) 
+stop  = datetime.datetime(2016,1,1) 
 
 # interpolate
 RGB = interpolate_triplet(r,g,b,t,start,stop)
@@ -108,8 +108,9 @@ axplot.set_ylim(0,1)
 axplot.set_ylabel('reflectance')
 
 # visualize rgb
+stretched_RGB = np.array(RGB) * 1/np.max(RGB)
 axRGB = fig.add_axes([0.07,plot_height+gap+4*mini_gap+3*minibar,0.9,bar])
-axRGB.imshow([RGB], interpolation='nearest', aspect='auto') #stretches rgb to fit axes
+axRGB.imshow([stretched_RGB], interpolation='nearest', aspect='auto') #stretches rgb to fit axes
 axRGB.set_xticks([])
 axRGB.set_yticks([])
 
@@ -144,8 +145,8 @@ outdir = '/home/sam/git/crater_lakes/plots/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
-#plt.savefig(target+'_v4.png')
-#plt.close()
+plt.savefig(target+'_v4.png')
+plt.close()
 
 
 
