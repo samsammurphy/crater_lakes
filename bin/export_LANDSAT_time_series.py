@@ -144,7 +144,7 @@ def LANDSAT_export(target):
     # export to table
     ee.batch.Export.table.toDrive(collection = data,\
                                   description = sat+'_'+target,\
-                                  folder = 'Lakedata_'+target,\
+                                  folder = 'LakeData_'+target,\
                                   fileFormat= 'GeoJSON'\
                                   ).start()
 

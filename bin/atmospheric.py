@@ -158,40 +158,46 @@ class Atmospheric():
     except:
       fill value
     """
-      
-    def aerosol_from_image(AOT_image,geom):
-      
-      AOT = AOT_image.reduceRegion(reducer=ee.Reducer.mean(),\
-                                   geometry=centroid)\
-                                  .get('AOT_550')
-      return AOT
     
-    def aerosol_from_fill(date,geom):
-      
-      band_name = ee.String('AOT_').cat(date.format('M'))
-      AOT_fill = ee.Image('users/samsammurphy/public/AOT_stack').select([band_name])
-      AOT = AOT_fill.reduceRegion(reducer=ee.Reducer.mean(),\
-                                  geometry=centroid)\
-                                 .get(band_name)
-      return AOT
+    def aerosol_this_month(date):
+      """
+      MODIS AOT original data product for this month (i.e. some data gaps)
+      """
+      return ee.Image(\
+                      ee.ImageCollection('MODIS/MOD08_M3_051')\
+                        .filterDate(Atmospheric.round_month(date))\
+                        .first()\
+                     )\
+               .select(['Corrected_Optical_Depth_Land_Mean_Mean_550'])\
+               .divide(1000)\
+               .rename(['AOT_550'])
+  
+  
+    def aerosol_fill(date):
+      """
+      MODIS AOT fill value for this month (i.e. no data gaps)
+      """
+      return ee.Image('users/samsammurphy/public/AOT_stack')\
+               .select([ee.String('AOT_').cat(date.format('M'))])\
+               .rename(['AOT_550'])
+  
+  
+    def get_AOT(AOT_band,geom):
+      """
+      AOT scalar value for target
+      """  
+      return ee.Image(AOT_band).reduceRegion(reducer=ee.Reducer.mean(),\
+                                 geometry=geom.centroid())\
+                                .get('AOT_550')
+                                
+
+    after_modis = date.difference(ee.Date('2000-03-01'),'month').gt(0)
     
-    centroid = geom.centroid()# point geometry required
+    AOT_band = ee.Algorithms.If(after_modis, aerosol_this_month(date), aerosol_fill(date))
     
-    AOT_image = ee.Image(\
-                         ee.ImageCollection('MODIS/MOD08_M3_051')\
-                           .filterDate(Atmospheric.round_month(date))\
-                           .first()\
-                        )\
-                  .select(['Corrected_Optical_Depth_Land_Mean_Mean_550'])\
-                  .divide(1000)\
-                  .rename(['AOT_550'])
+    AOT = get_AOT(AOT_band,geom)
     
-    # Read AOT from closest MODIS data product (else fill)
-    AOT = ee.Algorithms.If(AOT_image,aerosol_from_image(AOT_image,geom),\
-                           aerosol_from_fill(date,geom))
+    # check reduce region worked (else force fill value)
+    AOT = ee.Algorithms.If(AOT,AOT,get_AOT(aerosol_fill(date),geom))
     
-    
-    # If gap found use fill
-    AOT = ee.Algorithms.If(AOT,AOT,aerosol_from_fill(date,geom))
-                                                                
     return AOT

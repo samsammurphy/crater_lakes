@@ -146,7 +146,7 @@ def ASTER_export(target):
   # export to table
   ee.batch.Export.table.toDrive(collection = data,\
                                 description = 'AST_'+target,\
-                                folder = 'Lakedata_'+target,\
+                                folder = 'LakeData_'+target,\
                                 fileFormat= 'GeoJSON'\
                                 ).start()
 
