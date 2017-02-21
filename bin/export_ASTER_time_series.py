@@ -102,7 +102,8 @@ def extraction(geom):
                             'tir':tir,
                             'solar_z':ee.Number(90.0).subtract(img.get('SOLAR_ELEVATION')),
                             'H2O':Atmospheric.water(geom,date),
-                            'O3':Atmospheric.ozone(geom,date)
+                            'O3':Atmospheric.ozone(geom,date),
+                            'AOT':Atmospheric.aerosol(geom,date)
                             })
 
     return ee.Feature(geom,result)
@@ -145,7 +146,7 @@ def ASTER_export(target):
   # export to table
   ee.batch.Export.table.toDrive(collection = data,\
                                 description = 'AST_'+target,\
-                                folder = 'Ldata_'+target,\
+                                folder = 'Lakedata_'+target,\
                                 fileFormat= 'GeoJSON'\
                                 ).start()
 

@@ -205,7 +205,8 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
                 'sr':sr,
                 'T':T,
                 'lake_size':properties['vnir']['pixel_counts']['lake'],
-                'cloud':properties['vnir']['pixel_counts']['cloud']
+                'cloud':properties['vnir']['pixel_counts']['cloud'],
+                'params':params
                 }
       
       print(result)
@@ -242,4 +243,3 @@ def run_atmcorr(target, force=False):
       
     else:
       print('results file already exists: '+resultsFilename)
-      

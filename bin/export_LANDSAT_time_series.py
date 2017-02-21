@@ -100,6 +100,7 @@ def extraction(geom):
                             'solar_z':ee.Number(90.0).subtract(img.get('SUN_ELEVATION')),
                             'H2O':Atmospheric.water(geom,date),
                             'O3':Atmospheric.ozone(geom,date),
+                            'AOT':Atmospheric.aerosol(geom,date),
                             'LEDAPS':ee.Dictionary(Ledaps.find(img,date,geom))
                             })
   
@@ -110,8 +111,6 @@ def LANDSAT_export(target):
 
   # start Earth Engine
   ee.Initialize()
-  
-#  target = 'Ruapehu'
   
   # geometry (crater box)
   geom = ee.FeatureCollection('ft:1hReJyYMkes0MO2Kgl6zTsKPjruTimSfRSWqQ1dgF')\
@@ -145,13 +144,10 @@ def LANDSAT_export(target):
     # export to table
     ee.batch.Export.table.toDrive(collection = data,\
                                   description = sat+'_'+target,\
-                                  folder = 'Ldata_'+target,\
+                                  folder = 'Lakedata_'+target,\
                                   fileFormat= 'GeoJSON'\
                                   ).start()
 
-#
-#if __name__ == '__main__':
-#  main()
 
 
 

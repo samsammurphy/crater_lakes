@@ -1,8 +1,12 @@
 """
 atmospheric.py, Sam Murphy (2016-10-26)
 
-Uses Google Earth Engine to retrieve the water vapour and ozone for a given
-time (i.e. ee.Date) and location (i.e. ee.Geometry).
+Atmospheric water vapour, ozone and AOT from GEE
+
+Usage
+H2O = Atmospheric.water(geom,date)
+O3 = Atmospheric.ozone(geom,date)
+AOT = Atmospheric.aerosol(geom,date)
 
 """
 
@@ -21,6 +25,24 @@ class Atmospheric():
     H = date.get('hour')
     HH = H.divide(xhour).round().multiply(xhour)
     return date.fromYMD(y,m,d).advance(HH,'hour')
+  
+  def round_month(date):
+    """
+    round date to closest month
+    """
+    # start of THIS month
+    m1 = date.fromYMD(date.get('year'),date.get('month'),ee.Number(1))
+    
+    # start of NEXT month
+    m2 = m1.advance(1,'month')
+      
+    # difference from date
+    d1 = ee.Number(date.difference(m1,'day')).abs()
+    d2 = ee.Number(date.difference(m2,'day')).abs()
+    
+    # return closest start of month
+    return ee.Date(ee.Algorithms.If(d2.gt(d1),m1,m2))
+  
   
   
   def water(geom,date):
@@ -50,6 +72,8 @@ class Atmospheric():
     water_Py6S_units = ee.Number(water).divide(10)                                   
     
     return water_Py6S_units
+  
+  
   
   def ozone(geom,date):
     """
@@ -122,4 +146,52 @@ class Atmospheric():
       return ozone_Py6S_units
       
     return ozone_main()
+  
+  
 
+  def aerosol(geom,date):
+    """
+    Aerosol Optical Thickness.
+    
+    try:
+      MODIS Aerosol Product (monthly)
+    except:
+      fill value
+    """
+      
+    def aerosol_from_image(AOT_image,geom):
+      
+      AOT = AOT_image.reduceRegion(reducer=ee.Reducer.mean(),\
+                                   geometry=centroid)\
+                                  .get('AOT_550')
+      return AOT
+    
+    def aerosol_from_fill(date,geom):
+      
+      band_name = ee.String('AOT_').cat(date.format('M'))
+      AOT_fill = ee.Image('users/samsammurphy/public/AOT_stack').select([band_name])
+      AOT = AOT_fill.reduceRegion(reducer=ee.Reducer.mean(),\
+                                  geometry=centroid)\
+                                 .get(band_name)
+      return AOT
+    
+    centroid = geom.centroid()# point geometry required
+    
+    AOT_image = ee.Image(\
+                         ee.ImageCollection('MODIS/MOD08_M3_051')\
+                           .filterDate(Atmospheric.round_month(date))\
+                           .first()\
+                        )\
+                  .select(['Corrected_Optical_Depth_Land_Mean_Mean_550'])\
+                  .divide(1000)\
+                  .rename(['AOT_550'])
+    
+    # Read AOT from closest MODIS data product (else fill)
+    AOT = ee.Algorithms.If(AOT_image,aerosol_from_image(AOT_image,geom),\
+                           aerosol_from_fill(date,geom))
+    
+    
+    # If gap found use fill
+    AOT = ee.Algorithms.If(AOT,AOT,aerosol_from_fill(date,geom))
+                                                                
+    return AOT

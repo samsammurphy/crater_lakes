@@ -17,22 +17,21 @@ import numpy as np
 
 
 def load_sat(target,sat): 
-    base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
-    fname = '{}{}_{}.p'.format(base_path,target,sat)
-    data = pickle.load(open(fname,"rb"))
-    return data
+  base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
+  fname = '{}{}_{}.p'.format(base_path,target,sat)
+  data = pickle.load(open(fname,"rb"))
+  return data
   
-def timestamp_sort(dictionary): 
+def timestamp_sort(dictionary):
   return dictionary['timestamp']
   
 def get_HSV(data):
-  
   r = [x['sr']['red'] for x in data]
   g = [x['sr']['green'] for x in data]
   b = [x['sr']['blue'] for x in data]
   
   rgb = list(zip(r,g,b))
-
+  
   hsv = [colorsys.rgb_to_hsv(x[0],x[1],x[2]) \
          if np.min(x) >= 0 and np.max(x[1]) <= 1 \
          else np.repeat(np.NaN,3) for x in rgb]
@@ -40,7 +39,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Ruapehu'
+target = 'Poas'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -60,6 +59,7 @@ df = pd.DataFrame({
     'fileID':[x['fileID'] for x in data],
     'lake_size':[x['lake_size'] for x in data],
     'cloud':[x['cloud'] for x in data],
+    'AOT':[x['params']['AOT'] for x in data],
     'red':[x['sr']['red'] for x in data],
     'green':[x['sr']['green'] for x in data],      
     'blue':[x['sr']['blue'] for x in data],
@@ -74,9 +74,9 @@ df = pd.DataFrame({
 
 
 writer = pd.ExcelWriter('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/'
-                        'data/Ruapehu/test.xlsx')
+                        'data/Ruapehu/{}_satellite.xlsx'.format(target))
 df.to_excel(writer,columns=\
-['datetime','timestamp','satellite','fileID','lake_size','cloud',\
+['datetime','timestamp','satellite','fileID','lake_size','cloud','AOT',\
 'red','green','blue','hue','saturation','value',\
 'dBT','dTsurface','BT_lake','BT_bkgd'])
 writer.save()
