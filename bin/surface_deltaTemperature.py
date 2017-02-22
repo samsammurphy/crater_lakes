@@ -77,34 +77,6 @@ Using this local m we can estimate dT to within 2oC, 90% of the time.
 
 """
 
-# input
-#--------------------------------------------------------------
-import json
-
-target = 'Aoba'
-
-satellite = 'AST'
-
-aerosol = 'MA'
-
-base_path = '/home/sam/git/crater_lakes/atmcorr/lake_data/'
-    
-with open(base_path+'{0}/{1}_{0}.geojson'.format(target,satellite)) as f: 
-  GEE_data = json.load(f)
-  
-features = GEE_data['features']
-feature = features[1]
-
-properties = feature['properties']
-
-# subsystem extract
-tir  = properties['tir']
-satellite = 'AST'
-water_vapour = 1
-
-
-#--------------------------------------------------------------
-
 from physics import planck
 
 

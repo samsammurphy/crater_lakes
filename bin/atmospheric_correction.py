@@ -56,7 +56,6 @@ def load_iLUTs(satellite,aerosol):
   return iLUTs
 
 
-
 def estimate_lake_AOT(vnir,swir,params, iLUTs):
   """
   Estimates aerosol optical thickness over crater lake using the water pixel 
@@ -162,13 +161,12 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
                 'solar_z':properties['solar_z'],
                 'H2O':properties['H2O'],
                 'O3':properties['O3'],
+                'AOT':np.clip(properties['AOT'],0,8),# set -ve MODIS AOTs to zero
                 'alt':altitude,
                 'doy':properties['doy'],
                 'satellite':satellite
                 }
-      
-      params['AOT'] = estimate_lake_AOT(vnir,swir,params,iLUTs)
-      
+            
       # default None (i.e. blue sometimes missing, T might be overkill?)
       sr = {'blue':None, 'green':None,'red':None,'nir':None}
       T = {'BT_lake':None,'BT_bkgd':None,'dBT':None,'dTsurface':None}
