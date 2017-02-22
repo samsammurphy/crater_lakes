@@ -159,20 +159,6 @@ class Atmospheric():
       fill value
     """
     
-    def aerosol_this_month(date):
-      """
-      MODIS AOT original data product for this month (i.e. some data gaps)
-      """
-      return ee.Image(\
-                      ee.ImageCollection('MODIS/MOD08_M3_051')\
-                        .filterDate(Atmospheric.round_month(date))\
-                        .first()\
-                     )\
-               .select(['Corrected_Optical_Depth_Land_Mean_Mean_550'])\
-               .divide(1000)\
-               .rename(['AOT_550'])
-  
-  
     def aerosol_fill(date):
       """
       MODIS AOT fill value for this month (i.e. no data gaps)
@@ -180,7 +166,31 @@ class Atmospheric():
       return ee.Image('users/samsammurphy/public/AOT_stack')\
                .select([ee.String('AOT_').cat(date.format('M'))])\
                .rename(['AOT_550'])
-  
+               
+               
+    def aerosol_this_month(date):
+      """
+      MODIS AOT original data product for this month (i.e. some data gaps)
+      """
+      # image for this month
+      img =  ee.Image(\
+                      ee.ImageCollection('MODIS/MOD08_M3_051')\
+                        .filterDate(Atmospheric.round_month(date))\
+                        .first()\
+                     )
+      
+      # fill missing month (?)
+      img = ee.Algorithms.If(img,\
+                               # all good
+                               img\
+                               .select(['Corrected_Optical_Depth_Land_Mean_Mean_550'])\
+                               .divide(1000)\
+                               .rename(['AOT_550']),\
+                              # missing month
+                                aerosol_fill(date))
+                      
+      return img    
+        
   
     def get_AOT(AOT_band,geom):
       """
@@ -191,13 +201,13 @@ class Atmospheric():
                                 .get('AOT_550')
                                 
 
-    after_modis = date.difference(ee.Date('2000-03-01'),'month').gt(0)
+    after_modis_start = date.difference(ee.Date('2000-03-01'),'month').gt(0)
     
-    AOT_band = ee.Algorithms.If(after_modis, aerosol_this_month(date), aerosol_fill(date))
+    AOT_band = ee.Algorithms.If(after_modis_start, aerosol_this_month(date), aerosol_fill(date))
     
     AOT = get_AOT(AOT_band,geom)
     
-    # check reduce region worked (else force fill value)
     AOT = ee.Algorithms.If(AOT,AOT,get_AOT(aerosol_fill(date),geom))
+    # i.e. check reduce region worked (else force fill value)
     
     return AOT

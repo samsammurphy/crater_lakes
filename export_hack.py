@@ -25,6 +25,6 @@ from export_LANDSAT_time_series import LANDSAT_export
 #    pass
 
 
-target = 'Ruapehu'
+target = 'Poas'
 LANDSAT_export(target)
 ASTER_export(target)
