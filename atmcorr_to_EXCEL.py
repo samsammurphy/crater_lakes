@@ -67,7 +67,7 @@ df = pd.DataFrame({
     'saturation':[x[1] for x in hsv],
     'value':[x[2] for x in hsv],
     'dBT':[x['T']['dBT'] for x in data],
-    'dTsurface':[x['T']['dTsurface'] for x in data],
+    #'dTsurface':[x['T']['dTsurface'] for x in data],
     'BT_lake':[x['T']['BT_lake'] for x in data],
     'BT_bkgd':[x['T']['BT_bkgd'] for x in data]
     })

@@ -9,8 +9,7 @@ Created on Mon Feb  6 11:34:19 2017
 """
 
 from physics import planck
-from surface_deltaTemperature import surface_deltaTemperature
-
+#from surface_deltaTemperature import surface_deltaTemperature
 
 def TIR_11micron(tir,satellite):
   """
@@ -44,11 +43,11 @@ def thermal_atmcorr(tir,satellite):
   tir_lake, tir_bkgd, central_wavelength = TIR_11micron(tir,satellite)
   BT_lake = planck(central_wavelength, L = tir_lake, celsius=True)
   BT_bkgd = planck(central_wavelength, L = tir_bkgd, celsius=True)
-  dTsurface = surface_deltaTemperature(tir_lake, tir_bkgd, central_wavelength)
+  #dTsurface = surface_deltaTemperature(tir_lake, tir_bkgd, central_wavelength)
   
   return {
   'BT_lake':BT_lake,
   'BT_bkgd':BT_bkgd,
   'dBT':BT_lake-BT_bkgd,
-  'dTsurface':dTsurface
+  #'dTsurface':dTsurface
   }

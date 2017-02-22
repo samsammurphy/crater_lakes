@@ -75,7 +75,8 @@ def grey_magenta_cmap():
 target = 'Ruapehu'
   
 # read excel file
-df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}.xlsx'.format(target))
+df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/'
+                   '{0}/{0}_satellite.xlsx'.format(target))
 
 # null handler
 r,g,b,h,s,v,t,dt,DT = null_handler(df)
@@ -145,7 +146,7 @@ outdir = '/home/sam/git/crater_lakes/plots/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
-#plt.savefig(target+'_v4.png')
+plt.savefig(target+'_v4.png')
 #plt.close()
 
 

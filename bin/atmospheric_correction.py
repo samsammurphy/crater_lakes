@@ -56,32 +56,40 @@ def load_iLUTs(satellite,aerosol):
   return iLUTs
     
   
-def atmospherically_correct_time_series(target, satellite, aerosol):
+def load_satellite_data(target,satellite):
   """
-  Apply atmospheric correction over a time series for a given target and satellite 
+  Load satellite data downloaded from Google Earth Engine
   """
-  
+
   base_path = '/home/sam/git/crater_lakes/atmcorr/LakesData/'
   
   fpath = base_path+'LakeData_{0}/{0}_{1}.geojson'.format(target,satellite)
   
   try:
-    with open(fpath) as f: 
-      GEE_data = json.load(f)
-      features = GEE_data['features']
+    GEE_data = json.load(open(fpath))
+    features = GEE_data['features']
+    return features
   except:
     print("Couldn't open : {}\nNo valid data? Returning empty results list..".format(fpath))
     return []
-  
+
+
+def atmospherically_correct_time_series(target, satellite, aerosol):
+  """
+  Apply atmospheric correction over a time series for a given target and satellite 
+  """
+    
   iLUTs = load_iLUTs(satellite,aerosol)
   
   altitude = target_altitude(target)
   
-  results = []
+  satellite_fc = load_satellite_data(target,satellite)
   
-  for i, feature in enumerate(features): # enumerate for debugging only
+  results = []
+   
+  for i, feature in enumerate(satellite_fc):
     
-    print(target, satellite, '{} of {}'.format(i,len(features)))
+    print(target, satellite, '{} of {}'.format(i,len(satellite_fc)))
     
     properties = feature['properties']
     
@@ -125,7 +133,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
             
       # default None (i.e. blue sometimes missing, T might be overkill?)
       sr = {'blue':None, 'green':None,'red':None,'nir':None}
-      T = {'BT_lake':None,'BT_bkgd':None,'dBT':None,'dTsurface':None}
+      #T = {'BT_lake':None,'BT_bkgd':None,'dBT':None,'dTsurface':None}
 
       # VNIR    
       for band in ['blue','green','red','nir']:
@@ -196,4 +204,4 @@ def run_atmcorr(target, force=False):
     else:
       print('results file already exists: '+resultsFilename)
 
-run_atmcorr('Ruapehu')
+run_atmcorr('Ruapehu',force=True)
