@@ -39,7 +39,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Poas'
+target = 'Ruapehu'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -74,7 +74,7 @@ df = pd.DataFrame({
 
 
 writer = pd.ExcelWriter('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/'
-                        'data/Ruapehu/{}_satellite.xlsx'.format(target))
+                        'data/{0}/{0}_satellite.xlsx'.format(target))
 df.to_excel(writer,columns=\
 ['datetime','timestamp','satellite','fileID','lake_size','cloud','AOT',\
 'red','green','blue','hue','saturation','value',\

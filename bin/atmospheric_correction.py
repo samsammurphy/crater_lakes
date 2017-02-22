@@ -54,50 +54,6 @@ def load_iLUTs(satellite,aerosol):
     iLUTs[band_names[i]] = pickle.load(open(fname, "rb" ))
   
   return iLUTs
-
-
-def estimate_lake_AOT(vnir,swir,params, iLUTs):
-  """
-  Estimates aerosol optical thickness over crater lake using the water pixel 
-  ratio method (Kaufmann et al. 2008)
-  
-  swir / nir = 0.81
-  
-  where,  
-  nir = near infrared radiance at 0.8 microns
-  swir = short-wave infrared radiance 2.2 microns
-  """
-  
-  # define 2.2 micron swir band
-  if params['satellite'] == 'AST':
-    swir_band = 'swir3'
-  else:
-    swir_band = 'swir2'
-  
-  # define model values for AOT
-  model_values = [0.001]
-  while np.max(model_values)*1.05 < 3:
-    model_values.append(np.max(model_values)*1.05) 
-  
-  # calculate (potential) surface reflectance ratios for each model AIT value
-  ratios = []
-  for AOT in model_values:
-    
-    params['AOT'] = AOT # set model value to params dic 
-    
-    srNir = surface_reflectance(vnir['nir'], iLUTs['nir'],params)
-    
-    srSwir = surface_reflectance(swir[swir_band], iLUTs[swir_band],params)
-    
-    ratios.append(srSwir / srNir)
-  
-  # Find best result (i.e. where ratio closest to 0.81)
-  delta = abs(np.array(ratios)-0.81)
-  index = np.where(delta == np.min(delta))[0][0]
-  match = model_values[index]
-  
-  return match
-
     
   
 def atmospherically_correct_time_series(target, satellite, aerosol):
@@ -107,7 +63,7 @@ def atmospherically_correct_time_series(target, satellite, aerosol):
   
   base_path = '/home/sam/git/crater_lakes/atmcorr/LakesData/'
   
-  fpath = base_path+'LakeData_{0}/{1}_{0}.geojson'.format(target,satellite)
+  fpath = base_path+'LakeData_{0}/{0}_{1}.geojson'.format(target,satellite)
   
   try:
     with open(fpath) as f: 
@@ -224,12 +180,10 @@ def run_atmcorr(target, force=False):
   for satellite in ['L4','L5','L7','L8','AST']:
     
     # satellite directory
-    outdir = "/home/sam/git/crater_lakes/atmcorr/results/"+target
-    try:
-      os.chdir(outdir)
-    except:
-      os.mkdir(outdir)
-      os.chdir(outdir)
+    outdir = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
+    if not os.path.exists(outdir):
+      os.makedirs(outdir)
+    os.chdir(outdir)
     
     # check results file not exists already
     resultsFilename = "{}_{}.p".format(target,satellite)
@@ -241,3 +195,5 @@ def run_atmcorr(target, force=False):
       
     else:
       print('results file already exists: '+resultsFilename)
+
+run_atmcorr('Ruapehu')
