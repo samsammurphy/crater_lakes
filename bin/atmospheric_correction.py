@@ -203,5 +203,3 @@ def run_atmcorr(target, force=False):
       
     else:
       print('results file already exists: '+resultsFilename)
-
-run_atmcorr('Ruapehu',force=True)

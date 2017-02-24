@@ -14,9 +14,12 @@ sys.path.append("/home/sam/git/crater_lakes/bin")
 from atmospheric_correction import run_atmcorr
 
 # all targets
-f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
-for line in f: #for target in ['Ruapehu']:#['Poas','Yugama','Kelimutu_a','Kelimutu_b','Kelimutu_c']:
-  target = line.rstrip()
+#f = open('/home/sam/Dropbox/HIGP/Crater_Lakes/z/Volcanoes/volcano_names.txt')
+#for line in f: #
+#  target = line.rstrip()
+
+
+for target in ['Kelimutu_a','Kelimutu_b','Kelimutu_c']:
   print(target)
   try:
     run_atmcorr(target,force=True)

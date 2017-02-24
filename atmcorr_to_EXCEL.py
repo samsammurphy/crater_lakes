@@ -14,7 +14,7 @@ import datetime
 import colorsys
 import pandas as pd
 import numpy as np
-
+from baddies import naughty_list
 
 def load_sat(target,sat): 
   base_path = '/home/sam/git/crater_lakes/atmcorr/results/{}/'.format(target)
@@ -24,7 +24,15 @@ def load_sat(target,sat):
   
 def timestamp_sort(dictionary):
   return dictionary['timestamp']
+
+def remove_bad_data(data,target):
   
+  bad_files = naughty_list(target)
+  
+  ok = np.array([x['fileID'] not in bad_files for x in data])
+  
+  return np.compress(ok,data)
+        
 def get_HSV(data):
   r = [x['sr']['red'] for x in data]
   g = [x['sr']['green'] for x in data]
@@ -39,7 +47,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Ruapehu'
+target = 'Kelimutu_b'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -48,6 +56,9 @@ L7 = load_sat(target,'L7')
 L8 = load_sat(target,'L8')  
 data = list(itertools.chain(L4,L5,L7,L8))#,AST
 data = sorted(data,key=timestamp_sort)
+
+# remove badies
+data = remove_bad_data(data,target)
 
 # Calculate HSV color space
 hsv = get_HSV(data)

@@ -22,8 +22,8 @@ def null_handler(df):
   Handles missing data values
   """
   
-  # define ok as red = True
-  ok = np.array([~pd.isnull(df['red'])])[0]
+  # define ok as hue = True (i.e. avoid negative RGBs)
+  ok = np.array([~pd.isnull(df['hue'])])[0]
   
   # filter arrays
   r = df['red'][ok]
@@ -72,7 +72,7 @@ def grey_magenta_cmap():
   return ListedColormap(color_list, name='from_list')
 
 
-target = 'Ruapehu'
+target = 'Kelimutu_c'
   
 # read excel file
 df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/'
@@ -105,7 +105,7 @@ axplot.plot(dt,r,'r-o')
 axplot.plot(dt,g,'g-o')
 axplot.plot(dt,b,'b-o')
 axplot.set_xlim(start,stop)
-axplot.set_ylim(0,1)
+axplot.set_ylim(0,0.5)
 axplot.set_ylabel('reflectance')
 
 # visualize rgb

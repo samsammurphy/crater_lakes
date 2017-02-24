@@ -1,0 +1,42 @@
+%&pdflatex
+\documentclass[10pt,a4paper]
+{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\setlength{\parskip}{1em}
+
+\begin{document}
+\raggedright
+
+
+\textbf{Cross correlation}
+
+It is the integral of one two time series functions which are offset by some time delay $\tau$
+$$R(\tau)= \int_{-\infty}^{+\infty}x(t)y(t+\tau)\delta t $$
+
+If you normalize $R(\tau)$ by the 'energy in the functions' then the maximum value is always 1 (i.e. divide by max value)\par
+
+If the two functions x() and y() are identical then it becomes an autocorrelation. Some basic characteristics of autocorrelation include
+
+\begin{itemize}
+  \item white noise only correlates at delay = 0 (no correlation at other lags)
+  \item periodic signals taper up to (and away from) a maximum at delay = 0, i.e. as more (and then less) of the signal progressively overlaps with itself.
+\end{itemize}
+
+Now, if in the case of cross-correlation (i.e. non-identical functions) then
+
+\begin{itemize}
+  \item white noise shows zero correlation at all delays
+  \item periodic signals show the same behaviour (but you also get the offset)
+\end{itemize}
+
+In real life there will be noise in the data set, which you might want to smooth out (e.g. boxcar average) after applying the cross correlation
+
+
+
+
+
+\end{document}
