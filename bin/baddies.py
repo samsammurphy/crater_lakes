@@ -22,7 +22,11 @@ def naughty_list(target):
   
   bad_files = {
       
-      'Kelimutu_c': ['LT51120662000004ASA00']
+      'Kelimutu_c': ['LT51120662000004ASA00'],
+                    
+                    
+      'Yugama':['LT51080352001058BJC00','LT51080352001138BJC01',\
+      'LT51080352002061BJC01','LT51080352002077BJC00','LT51080352002093BJC00']
       
       }
       

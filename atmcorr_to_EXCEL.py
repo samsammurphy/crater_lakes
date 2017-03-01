@@ -41,13 +41,15 @@ def get_HSV(data):
   rgb = list(zip(r,g,b))
   
   hsv = [colorsys.rgb_to_hsv(x[0],x[1],x[2]) \
-         if np.min(x) >= 0 and np.max(x[1]) <= 1 \
+         if (x[0] and x[1] and x[2]) and
+             np.min(x) >= 0 and
+             np.max(x[1]) <= 1 \
          else np.repeat(np.NaN,3) for x in rgb]
   
   return hsv
   
 
-target = 'Kelimutu_b'
+target = 'Yugama'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  

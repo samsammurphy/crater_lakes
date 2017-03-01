@@ -14,7 +14,7 @@ Created on Sat Feb  4 20:27:40 2017
 import os
 import glob
 
-directory = '/home/sam/git/crater_lakes/atmcorr/lake_data'
+directory = '/home/sam/git/crater_lakes/atmcorr/LakesData'
 subpaths = sorted([x[0] for x in os.walk(directory)][1:])
 subdirs = sorted([os.path.basename(sub) for sub in subpaths])
 

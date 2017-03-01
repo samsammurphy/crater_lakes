@@ -19,7 +19,7 @@ from atmospheric_correction import run_atmcorr
 #  target = line.rstrip()
 
 
-for target in ['Kelimutu_a','Kelimutu_b','Kelimutu_c']:
+for target in ['Lake_Nyos']:
   print(target)
   try:
     run_atmcorr(target,force=True)
