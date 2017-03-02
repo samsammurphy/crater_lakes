@@ -7,6 +7,26 @@ Created on Wed Mar  1 16:24:20 2017
 @author: sam
 """
 
+
+
+
+"""
+
+TODO
+This is literally the example from groupby.transform()
+
+grouped.transform(lambda x: (x - x.mean()) / x.std())
+
+
+see perhaps also
+
+I use TimeGrouper from pandas.tseries.resample to sum monthly return to 6M as follows:
+
+6m_return = monthly_return.groupby(TimeGrouper(freq='6M')).aggregate(numpy.sum)
+
+
+
+"""
 import pandas as pd
 import matplotlib.pylab as plt
 from plot_field_time_series import plot_unrest_and_eruptions
