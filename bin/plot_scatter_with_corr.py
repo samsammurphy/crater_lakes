@@ -35,7 +35,7 @@ def clean_series(df,varname):
   
   return interpolated
 
-var1 = 
+
 
 
 df = load_dataFrame('Kelimutu_b')

@@ -49,7 +49,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Yugama'
+target = 'Rincon_de_la_Vieja'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -66,12 +66,12 @@ data = remove_bad_data(data,target)
 hsv = get_HSV(data)
 
 df = pd.DataFrame({
-    'datetime':[datetime.datetime.fromtimestamp(x['timestamp']) for x in data],
+    'datetime':[datetime.datetime.utcfromtimestamp(x['timestamp']) for x in data],
     'timestamp':[x['timestamp'] for x in data],
     'satellite':[x['satellite'] for x in data],
     'fileID':[x['fileID'] for x in data],
     'lake_size':[x['lake_size'] for x in data],
-    'cloud':[x['cloud'] for x in data],
+    #'cloud':[x['cloud'] for x in data],
     'AOT':[x['params']['AOT'] for x in data],
     'red':[x['sr']['red'] for x in data],
     'green':[x['sr']['green'] for x in data],      

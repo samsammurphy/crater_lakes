@@ -42,7 +42,7 @@ def txt_to_pandas(fpath):
       'wind_direction': read_numeric_column(lines,(27,29)), # degrees from magnetic north
       'wind_speed': read_numeric_column(lines,(30,33)), # miles per hour                              
       'visibility': read_numeric_column(lines,(52,56)), # miles
-      'temperature ': read_numeric_column(lines,(83,87)),
+      'temperature': read_numeric_column(lines,(83,87)),
       'dew_point': read_numeric_column(lines,(88,92)),
       'sea_level_pressure': read_numeric_column(lines,(93,99)),
       'station_pressure': read_numeric_column(lines,(106,112)),
@@ -68,3 +68,6 @@ df = pd.concat(dfs)
 
 # write to file
 df.to_pickle(bpath+'all_Met_1987_2017.pkl')
+df.to_excel(bpath+'all_Met_1987_2017.xlsx',columns=['temperature','dew_point',\
+  'sea_level_pressure','station_pressue','visibility','precipitation_6hour',\
+  'precipitation_24hour','wind_speed','wind_direction'])

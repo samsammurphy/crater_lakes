@@ -11,16 +11,15 @@ import matplotlib.pylab as plt
 import matplotlib.dates as mdates
 
 
-def read_excel(target):
-  """ read excel file for target """
-  
+def read_satellite(target): 
   bpath = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}'.format(target)
-  fpath = '{0}_satellite.xlsx'.format(bpath)
-  df = pd.read_excel(fpath)
-
-  # set datetime as index
+  df = pd.read_excel('{0}_satellite.xlsx'.format(bpath))
   df = df.set_index(pd.DatetimeIndex(df['datetime']))
+  return df
   
+def read_climate():
+  bpath = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/Kelimutu/climate/'
+  df = pd.read_pickle(bpath+'all_Met_1987_2017.pkl')
   return df
      
 def subplot(ax,df,name):
@@ -36,15 +35,14 @@ def subplot(ax,df,name):
 # target lake
 target = 'Kelimutu_c'
 
-# satellite data
-df = read_excel(target)#['1990-03-28':'1990-04-01']
-
-# resample and interpolate
-#df = df.resample('1D').agg('mean').interpolate(method='time')
+# data
+sat = read_satellite(target)#['1990-03-28':'1990-04-01']
+climate = read_climate()
 
 # subplots
-fig, (ax1, ax2, ax3) = plt.subplots(3,1)
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(4,1,sharex=True)
 fig.set_size_inches(6,5)
-subplot(ax1,df,'hue')
-subplot(ax2,df,'saturation')
-subplot(ax3,df,'value')
+subplot(ax1,sat,'hue')
+subplot(ax2,sat,'saturation')
+subplot(ax3,sat,'value')
+subplot(ax4,climate,'temperature')
