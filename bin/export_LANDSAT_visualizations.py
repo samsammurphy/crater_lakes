@@ -4,11 +4,6 @@ import datetime
 import time
 
 
-print('1 hour break!!')
-time.sleep(3600)
-
-
-
 # start Earth Engine
 ee.Initialize()
   
@@ -38,7 +33,7 @@ RGB_list = L4.merge(L5).merge(L7).merge(L8).map(toRGB).toList(1000)
 num = RGB_list.length().getInfo()
 
 # export list elements
-for i in range(284,num):
+for i in range(438,num):
    
   # this rgb visual
   rgb = ee.Image(RGB_list.get(i))
