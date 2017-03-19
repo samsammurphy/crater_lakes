@@ -16,21 +16,21 @@ ee.Initialize()
 import time
 import random
 def cancel_task(task):
-    print task
+    print(task)
     random_time = random.random()
     time.sleep(0.5+random_time*0.5)
     if task.config['state'] in (u'RUNNING',u'UNSUBMITTED',u'READY') :
-        print 'canceling %s' % task
+        print('canceling {}'.format(task))
         task.cancel()
 def get_tasks():
     return ee.batch.Task.list()
 
 def usage():
-    print '------------cancel_tasks.py---------------'
-    print '---Cancel all running / pending tasks:'
-    print '     python cancel_tasks.py'
-    print '---Cancel all running / pending tasks containing substring (no regex applied):'
-    print '     python cancel_tasks.py substring'
+    print('------------cancel_tasks.py---------------')
+    print('---Cancel all running / pending tasks:')
+    print('     python cancel_tasks.py')
+    print('---Cancel all running / pending tasks containing substring (no regex applied):')
+    print('     python cancel_tasks.py substring')
     
 if __name__=='__main__':
     if len(sys.argv)>2:
@@ -41,7 +41,7 @@ if __name__=='__main__':
 
     if len(sys.argv)>1:
         tasks = [task for task in tasks if len(task.config['description'].split(sys.argv[1]))>1]
-    print 'cancelling %d tasks' % len(tasks)
+    print('cancelling {} tasks'.format((tasks)))
     p = Pool(4)
     p.map(cancel_task,tasks)
     for task in tasks:
