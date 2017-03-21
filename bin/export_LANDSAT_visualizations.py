@@ -33,7 +33,11 @@ RGB_list = L4.merge(L5).merge(L7).merge(L8).map(toRGB).toList(1000)
 num = RGB_list.length().getInfo()
 
 # export list elements
+<<<<<<< HEAD
 for i in range(0,num):
+=======
+for i in range(466,num):
+>>>>>>> master
    
   # this rgb visual
   rgb = ee.Image(RGB_list.get(i))
@@ -44,8 +48,8 @@ for i in range(0,num):
   filename = date.strftime('%Y_%m_%d_%H%M')
   
   # export
-  task = ee.batch.Export.image.toDrive(image=rgb,\
-                                       description=filename,\
+  task = ee.batch.Export.image.toDrive(image=rgb,
+                                       description=filename,
                                        folder = 'Kelimutu_RGBs',
                                        scale = 30,
                                        dimensions = 400)
@@ -53,5 +57,5 @@ for i in range(0,num):
 
   print('Progress = {0} of {1}, fileID = {2}'.format(i+1,num,filename))
 
-  print('sleeping for 90 secs..')
-  time.sleep(90) # <-------------------------------------------------------------------------- sleeper
+  print('sleeping for 120 secs..')
+  time.sleep(120) # <-------------------------------------------------------------------------- sleeper
