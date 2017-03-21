@@ -8,6 +8,7 @@ Created on Thu Feb 16 17:00:24 2017
 @author: sam
 """
 
+import os
 import pickle
 import itertools
 import datetime
@@ -49,7 +50,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Rincon_de_la_Vieja'
+target = 'Kelimutu_c'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -86,8 +87,14 @@ df = pd.DataFrame({
     })
 
 
-writer = pd.ExcelWriter('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/'
-                        'data/{0}/{0}_satellite.xlsx'.format(target))
+# create output directory if necessary
+outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/'+target
+if not os.path.exists(outdir):
+  os.mkdir(outdir)
+os.chdir(outdir)
+
+# wrtie the excel file
+writer = pd.ExcelWriter(target+'_satellite.xlsx')
 df.to_excel(writer,columns=\
 ['datetime','timestamp','satellite','fileID','lake_size','cloud','AOT',\
 'red','green','blue','hue','saturation','value',\

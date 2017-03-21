@@ -13,6 +13,7 @@ import numpy as np
 import datetime
 import time
 import matplotlib.pylab as plt
+import matplotlib.dates as mdates
 import colorsys
 import math
 
@@ -112,16 +113,19 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylabel=False,color='#1f77b4'):
   D, Y = interpolate_series(t,y,start,stop)
   boxD, boxY = boxcar_average(D,Y,180)
   ax.plot(boxD,boxY,'r-')
+  
+  # make the dates exact
+  ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 
 
 # read data
-target = 'Kelimutu_a'
+target = 'Kelimutu_c'
 df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}_satellite.xlsx'.format(target))
 r,g,b,h,s,v,t,dBT,dt = null_handler(df)
 
 # define time period
-start = datetime.datetime(1990,1,1)
-stop  = datetime.datetime(2016,1,1) 
+start = datetime.datetime(1987,1,1)
+stop  = datetime.datetime(2017,1,1) 
 
 # interpolate data
 RGB = interpolate_triplet(r,g,b,t,start,stop)
@@ -155,7 +159,7 @@ outdir = '/home/sam/git/crater_lakes/plots/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
-#plt.savefig(target+'_v5.png')
+plt.savefig(target+'_v5.png')
 #plt.close()
 
 

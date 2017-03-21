@@ -21,10 +21,10 @@ def toRGB(img):
   return rgb.set('timestamp',timestamp)
 
 # image collections
-L4 = ee.ImageCollection('LANDSAT/LT4_L1T_TOA').select(['B3','B2','B1']).filterDate('1900-01-01', '2016-01-01').filterBounds(geom.centroid())
-L5 = ee.ImageCollection('LANDSAT/LT5_L1T_TOA').select(['B3','B2','B1']).filterDate('1900-01-01', '2016-01-01').filterBounds(geom.centroid())
-L7 = ee.ImageCollection('LANDSAT/LE7_L1T_TOA').select(['B3','B2','B1']).filterDate('1900-01-01', '2016-01-01').filterBounds(geom.centroid())
-L8 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').select(['B4','B3','B2']).filterDate('1900-01-01', '2016-01-01').filterBounds(geom.centroid())
+L4 = ee.ImageCollection('LANDSAT/LT4_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
+L5 = ee.ImageCollection('LANDSAT/LT5_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
+L7 = ee.ImageCollection('LANDSAT/LE7_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
+L8 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').select(['B4','B3','B2']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
 
 # RGB list
 RGB_list = L4.merge(L5).merge(L7).merge(L8).map(toRGB).toList(1000)
@@ -33,7 +33,7 @@ RGB_list = L4.merge(L5).merge(L7).merge(L8).map(toRGB).toList(1000)
 num = RGB_list.length().getInfo()
 
 # export list elements
-for i in range(438,num):
+for i in range(0,num):
    
   # this rgb visual
   rgb = ee.Image(RGB_list.get(i))

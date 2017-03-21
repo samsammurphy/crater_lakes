@@ -22,6 +22,9 @@ def naughty_list(target):
   
   bad_files = {
       
+      'Kelimutu_a':['LT51120662008282ASA00','LT51120661997331ASA00','LT51120661996345DKI00'],
+      
+      
       'Kelimutu_c': ['LT51120662000004ASA00'],
                     
                     

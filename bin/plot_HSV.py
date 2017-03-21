@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_time_series_v6.py
+plot_HSV.py
 
 """
 
 import pandas as pd
 import matplotlib.pylab as plt
 import matplotlib.dates as mdates
-
+import os
 
 def read_excel(target):
   """ read excel file for target """
@@ -44,7 +44,14 @@ df = read_excel(target)#['1990-03-28':'1990-04-01']
 
 # subplots
 fig, (ax1, ax2, ax3) = plt.subplots(3,1)
-fig.set_size_inches(6,5)
+fig.set_size_inches(12,10)
 subplot(ax1,df,'hue')
 subplot(ax2,df,'saturation')
 subplot(ax3,df,'value')
+
+# save
+outdir = '/home/sam/git/crater_lakes/plots/'+target
+if not os.path.exists(outdir):
+  os.mkdir(outdir)
+os.chdir(outdir)
+plt.savefig(target+'_HSV.png')
