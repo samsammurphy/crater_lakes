@@ -28,8 +28,7 @@ def timestamp_sort(dictionary):
 
 def remove_bad_data(data,target):
   
-  bad_files = naughty_list(target)
-  
+  bad_files = naughty_list(data,target)
   ok = np.array([x['fileID'] not in bad_files for x in data])
   
   return np.compress(ok,data)
@@ -50,7 +49,7 @@ def get_HSV(data):
   return hsv
   
 
-target = 'Kelimutu_c'
+target = 'Kelimutu_a'
 
 # Load all Landsat data into single chronological list
 L4 = load_sat(target,'L4')  
@@ -88,7 +87,7 @@ df = pd.DataFrame({
 
 
 # create output directory if necessary
-outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/'+target
+outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)

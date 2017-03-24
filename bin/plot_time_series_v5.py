@@ -120,7 +120,8 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylabel=False,color='#1f77b4'):
 
 # read data
 target = 'Kelimutu_c'
-df = pd.read_excel('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/data/{0}/{0}_satellite.xlsx'.format(target))
+base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
+df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
 r,g,b,h,s,v,t,dBT,dt = null_handler(df)
 
 # define time period
