@@ -1,8 +1,6 @@
 """
 Exports the atmospheric variables for 6S
 
-nb. altitude (a constant) is saved in a separate txt file
-
 """
 
 import ee
