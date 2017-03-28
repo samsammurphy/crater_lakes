@@ -14,7 +14,7 @@ Created on Sat Feb  4 10:15:50 2017
 import glob
 import os
 
-path = '/home/sam/git/crater_lakes/atmcorr/LakesData'
+path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_averages'
 
 for filename in glob.iglob(path+'/**/*.json', recursive=True):
   if filename.endswith('.json'):
