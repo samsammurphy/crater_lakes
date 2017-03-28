@@ -3,6 +3,7 @@ Runs 6S emulator and updates atmospheric variables
 
 """
 
+import sys
 import os, glob, pickle
 import pandas as pd
 import numpy as np
@@ -19,7 +20,7 @@ def load_ilut(sensor_name, aerosol):
   iLUT = {}
   band_names = ['blue','green','red','nir','swir1','swir2']
 
-  base_path = '/home/sam/git/crater_lakes/atmcorr/iLUTs/'
+  base_path = '/home/sam/git/atmcorr_py6s/iLUTs/'
   full_path = os.path.join(base_path,sensor_name+'_'+aerosol,'viewz_0/')
   filepaths = sorted(glob.glob(full_path+'*.ilut'))
 
@@ -76,11 +77,16 @@ def emulate_6S(iLUT,p,km):
 
 def main():
 
+  # aerosol profile
+  if len(sys.argv) != 2:
+    sys.exit('usage: python3 update_atmcorr_variables.py {aerosol}')
+  aerosol = sys.argv[1]
+
   # load interpolated look up tables
   iLUTs = {
-  'TM':load_ilut('LANDSAT_TM','MA'),
-  'ETM':load_ilut('LANDSAT_ETM','MA'),
-  'OLI':load_ilut('LANDSAT_OLI','MA')  
+  'TM':load_ilut('LANDSAT_TM',aerosol),
+  'ETM':load_ilut('LANDSAT_ETM',aerosol),
+  'OLI':load_ilut('LANDSAT_OLI',aerosol)  
   }
 
   # atmospheric variables
@@ -152,7 +158,7 @@ def main():
   atms['fileID'] = [x.split('_')[-1] for x in atms['system:index']]
 
   # export to csv
-  atms.to_csv('/home/sam/git/crater_lakes/atmcorr/atmospheric_variables_6S.csv',\
+  atms.to_csv('/home/sam/git/crater_lakes/atmcorr/atmospheric_variables_6S_'+aerosol+'.csv',\
   columns = ['fileID','datetime','H2O','O3','AOT','solar_z',\
   'blue_Edir','blue_Edif','blue_tau2','blue_Lp',\
   'green_Edir','green_Edif','green_tau2','green_Lp',\
