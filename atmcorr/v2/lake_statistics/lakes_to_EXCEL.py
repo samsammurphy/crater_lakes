@@ -3,17 +3,21 @@ import glob
 import json
 import itertools
 
-#Extracts surface reflectance time series from feature collection
-def SR_from_FC(feature_collection,bandname):return [feature['properties']['lake_average'][bandname] for feature in feature_collection]
+# surface reflectance time series from feature collection
+def SR_from_FC(feature_collection,bandname):return [feature['properties']['lake_SR'][bandname] for feature in feature_collection]
 
-base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_averages/Kelimutu_b/'
+# all other time series from feature collection
+def X_from_FC(feature_collection, varname): return [feature['properties'][varname] for feature in feature_collection]
+
+base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/Kelimutu_b/'
 fpaths = sorted(glob.glob(base_path+'*.geojson'))
 
-lake_averages = []
+lake_statistics = []
 
 for fpath in fpaths:
 
     feature_collection = json.load(open(fpath))['features']  
+  
     b = SR_from_FC(feature_collection,'blue')
     g = SR_from_FC(feature_collection,'green')
     r = SR_from_FC(feature_collection,'red')
@@ -21,7 +25,14 @@ for fpath in fpaths:
     s1 = SR_from_FC(feature_collection,'swir1')
     s2 = SR_from_FC(feature_collection,'swir2')
 
-    lake_averages.append((b,g,r,n,s1,s2))
+    BT_lake = X_from_FC(feature_collection,'BT_lake')
+    BT_bkgd = X_from_FC(feature_collection,'BT_bkgd')
+
+    cloud_count = X_from_FC(feature_collection,'cloud_count')
+    water_count = X_from_FC(feature_collection,'water_count')
+    sulphur_count = X_from_FC(feature_collection,'sulphur_count')
+
+    lake_statistics.append((b,g,r,n,s1,s2,BT_lake,BT_bkgd,cloud_count,water_count,sulphur_count))
 
 blue  = list(itertools.chain(*[x[0] for x in lake_averages]))
 green = list(itertools.chain(*[x[1] for x in lake_averages]))
@@ -29,4 +40,11 @@ red   = list(itertools.chain(*[x[2] for x in lake_averages]))
 nir   = list(itertools.chain(*[x[3] for x in lake_averages]))
 swir1 = list(itertools.chain(*[x[4] for x in lake_averages]))
 swir2 = list(itertools.chain(*[x[5] for x in lake_averages]))
+
+BT_lake = list(itertools.chain(*[x[6] for x in lake_averages]))
+BT_bkgd = list(itertools.chain(*[x[7] for x in lake_averages]))
+
+cloud_count = list(itertools.chain(*[x[8] for x in lake_averages]))
+water_count = list(itertools.chain(*[x[9] for x in lake_averages]))
+sulphur_count = list(itertools.chain(*[x[10] for x in lake_averages]))
 
