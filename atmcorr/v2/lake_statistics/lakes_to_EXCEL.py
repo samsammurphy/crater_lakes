@@ -34,17 +34,16 @@ for fpath in fpaths:
 
     lake_statistics.append((b,g,r,n,s1,s2,BT_lake,BT_bkgd,cloud_count,water_count,sulphur_count))
 
-blue  = list(itertools.chain(*[x[0] for x in lake_averages]))
-green = list(itertools.chain(*[x[1] for x in lake_averages]))
-red   = list(itertools.chain(*[x[2] for x in lake_averages]))
-nir   = list(itertools.chain(*[x[3] for x in lake_averages]))
-swir1 = list(itertools.chain(*[x[4] for x in lake_averages]))
-swir2 = list(itertools.chain(*[x[5] for x in lake_averages]))
+blue  = list(itertools.chain(*[x[0] for x in lake_statistics]))
+green = list(itertools.chain(*[x[1] for x in lake_statistics]))
+red   = list(itertools.chain(*[x[2] for x in lake_statistics]))
+nir   = list(itertools.chain(*[x[3] for x in lake_statistics]))
+swir1 = list(itertools.chain(*[x[4] for x in lake_statistics]))
+swir2 = list(itertools.chain(*[x[5] for x in lake_statistics]))
 
-BT_lake = list(itertools.chain(*[x[6] for x in lake_averages]))
-BT_bkgd = list(itertools.chain(*[x[7] for x in lake_averages]))
+BT_lake = list(itertools.chain(*[x[6] for x in lake_statistics]))
+BT_bkgd = list(itertools.chain(*[x[7] for x in lake_statistics]))
 
-cloud_count = list(itertools.chain(*[x[8] for x in lake_averages]))
-water_count = list(itertools.chain(*[x[9] for x in lake_averages]))
-sulphur_count = list(itertools.chain(*[x[10] for x in lake_averages]))
-
+cloud_count = list(itertools.chain(*[x[8] for x in lake_statistics]))
+water_count = list(itertools.chain(*[x[9] for x in lake_statistics]))
+sulphur_count = list(itertools.chain(*[x[10] for x in lake_statistics]))
