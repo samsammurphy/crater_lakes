@@ -52,17 +52,17 @@ def lake_statistics_from_GeoJSON(base_path, target):
   """
   read lake statistics from geojson
   """
-
+  
   fpaths = sorted(glob.glob(base_path+'*.geojson'))
-
+  
   lake_statistics = []
-
+  
   for fpath in fpaths:
     
     # feature collection (clean)
     fc = json.load(open(fpath))['features']  
     fc = remove_baddies(fc, target)
-
+    
     date = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
     fileID = getX(fc, 'fileID')
     
@@ -72,57 +72,60 @@ def lake_statistics_from_GeoJSON(base_path, target):
     n = getSR(fc, 'nir')
     s1 = getSR(fc, 'swir1')
     s2 = getSR(fc, 'swir2')
-
+    
     h, s, v = rgb_to_hsv(r, g, b)
-
+    
     BT_lake = getX(fc, 'BT_lake')
     BT_bkgd = getX(fc, 'BT_bkgd')
     dBT = [x[0]-x[1] if not None in x else None for x in list(zip(BT_lake,BT_bkgd))]
-
+    
     cloud_count = getX(fc, 'cloud_count')
     water_count = getX(fc, 'water_count')
     sulphur_count = getX(fc, 'sulphur_count')
-
-    lake_statistics.append((b, g, r, n, s1, s2, h, s, v, \
-    BT_lake, BT_bkgd, dBT, cloud_count, water_count, sulphur_count,\
-    date, fileID))
-
+    
+    lake_statistics.append((date, fileID, b, g, r, n, s1, s2, h, s, v, \
+    BT_lake, BT_bkgd, dBT, cloud_count, water_count, sulphur_count))
+  
   return lake_statistics
 
 def build_DataFrame(lake_stats):
+  
   df = pd.DataFrame({
-  'blue' :list(itertools.chain(*[x[0] for x in lake_stats])),
-  'green':list(itertools.chain(*[x[1] for x in lake_stats])),
-  'red'  :list(itertools.chain(*[x[2] for x in lake_stats])),
-  'nir'  :list(itertools.chain(*[x[3] for x in lake_stats])),
-  'swir1':list(itertools.chain(*[x[4] for x in lake_stats])),
-  'swir2':list(itertools.chain(*[x[5] for x in lake_stats])),
-  'hue':list(itertools.chain(*[x[6] for x in lake_stats])),
-  'saturation':list(itertools.chain(*[x[7] for x in lake_stats])),
-  'value':list(itertools.chain(*[x[8] for x in lake_stats])),
-  'BT_lake':list(itertools.chain(*[x[9] for x in lake_stats])),
-  'BT_bkgd':list(itertools.chain(*[x[10] for x in lake_stats])),
-  'dBT':list(itertools.chain(*[x[11] for x in lake_stats])),
-  'cloud_count':list(itertools.chain(*[x[12] for x in lake_stats])),
-  'water_count':list(itertools.chain(*[x[13] for x in lake_stats])),
-  'sulphur_count':list(itertools.chain(*[x[14] for x in lake_stats])),
-  'date':list(itertools.chain(*[x[15] for x in lake_stats])),
-  'fileID':list(itertools.chain(*[x[16] for x in lake_stats]))
+  'datetime':list(itertools.chain(*[x[0] for x in lake_stats])),
+  'fileID':list(itertools.chain(*[x[1] for x in lake_stats])),
+  'blue' :list(itertools.chain(*[x[2] for x in lake_stats])),
+  'green':list(itertools.chain(*[x[3] for x in lake_stats])),
+  'red'  :list(itertools.chain(*[x[4] for x in lake_stats])),
+  'nir'  :list(itertools.chain(*[x[5] for x in lake_stats])),
+  'swir1':list(itertools.chain(*[x[6] for x in lake_stats])),
+  'swir2':list(itertools.chain(*[x[7] for x in lake_stats])),
+  'hue':list(itertools.chain(*[x[8] for x in lake_stats])),
+  'saturation':list(itertools.chain(*[x[9] for x in lake_stats])),
+  'value':list(itertools.chain(*[x[10] for x in lake_stats])),
+  'BT_lake':list(itertools.chain(*[x[11] for x in lake_stats])),
+  'BT_bkgd':list(itertools.chain(*[x[12] for x in lake_stats])),
+  'dBT':list(itertools.chain(*[x[13] for x in lake_stats])),
+  'cloud_count':list(itertools.chain(*[x[14] for x in lake_stats])),
+  'water_count':list(itertools.chain(*[x[15] for x in lake_stats])),
+  'sulphur_count':list(itertools.chain(*[x[16] for x in lake_stats])),
   })
+  
+  df.sort_values('datetime', inplace=True)
+
   return df
 
 def DateFrame_to_Excel(df, target):
   """
   Pandas DataFrame to Microsoft Excel file
   """
-
+  
   outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/'+target
   if not os.path.exists(outdir): os.mkdir(outdir)
   os.chdir(outdir)
-
+  
   writer = pd.ExcelWriter(target+'_satellite.xlsx')#target+'_satellite.xlsx'
   df.to_excel(writer,columns=\
-  ['date','fileID','blue', 'green', 'red', 'nir', 'swir1', 'swir2',\
+  ['datetime','fileID','blue', 'green', 'red', 'nir', 'swir1', 'swir2',\
   'hue', 'saturation', 'value', 'BT_lake', 'BT_bkgd', 'dBT',\
   'cloud_count', 'water_count', 'sulphur_count'])
   
@@ -131,10 +134,10 @@ def DateFrame_to_Excel(df, target):
 
 def main():
   
-  target = 'Kelimutu_b'
-
+  target = 'Kelimutu_c'
+  
   base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
-
+  
   lake_stats = lake_statistics_from_GeoJSON(base_path,target)
   df = build_DataFrame(lake_stats)
   DateFrame_to_Excel(df, target)
