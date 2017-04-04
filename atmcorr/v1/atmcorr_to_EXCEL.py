@@ -92,7 +92,7 @@ if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
 
-# wrtie the excel file
+# write the excel file
 writer = pd.ExcelWriter(target+'_satellite.xlsx')
 df.to_excel(writer,columns=\
 ['datetime','timestamp','satellite','fileID','lake_size','cloud','AOT',\

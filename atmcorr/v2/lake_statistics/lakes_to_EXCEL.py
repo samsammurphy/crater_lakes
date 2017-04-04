@@ -1,49 +1,143 @@
-
+import os 
 import glob
 import json
 import itertools
+import colorsys
+import datetime
+import pandas as pd
+import numpy as np
 
-# surface reflectance time series from feature collection
-def SR_from_FC(feature_collection,bandname):return [feature['properties']['lake_SR'][bandname] for feature in feature_collection]
+import sys 
+sys.path.append('/home/sam/git/crater_lakes/bin')
+from baddies import naughty_list
 
-# all other time series from feature collection
-def X_from_FC(feature_collection, varname): return [feature['properties'][varname] for feature in feature_collection]
-
-base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/Kelimutu_b/'
-fpaths = sorted(glob.glob(base_path+'*.geojson'))
-
-lake_statistics = []
-
-for fpath in fpaths:
-
-    feature_collection = json.load(open(fpath))['features']  
+def remove_baddies(fc,target):
+  """
+  Removes bad files from feature collection 
+  1) from bad fileID list
+  2) from not in cloud_filtered_(manually)/
+  """
   
-    b = SR_from_FC(feature_collection,'blue')
-    g = SR_from_FC(feature_collection,'green')
-    r = SR_from_FC(feature_collection,'red')
-    n = SR_from_FC(feature_collection,'nir')
-    s1 = SR_from_FC(feature_collection,'swir1')
-    s2 = SR_from_FC(feature_collection,'swir2')
+  # full fileIDs and dates (these lists will be cloud filtered in level up)
+  fileIDs = [x['properties']['fileID'] for x in fc]
+  dates = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
+  bad_files = naughty_list(target, fileIDs, dates)
+  ok = np.array([x['properties']['fileID'] not in bad_files for x in fc])
+  
+  return np.compress(ok,fc)
 
-    BT_lake = X_from_FC(feature_collection,'BT_lake')
-    BT_bkgd = X_from_FC(feature_collection,'BT_bkgd')
+def getSR(fc, bandname):
+  """
+  surface reflectance time series from feature collection
+  """
+  return [feature['properties']['lake_SR'][bandname] for feature in fc]
 
-    cloud_count = X_from_FC(feature_collection,'cloud_count')
-    water_count = X_from_FC(feature_collection,'water_count')
-    sulphur_count = X_from_FC(feature_collection,'sulphur_count')
+def getX(fc, varname):
+  """
+  all other time series from feature collection
+  """
+  return [feature['properties'][varname] for feature in fc]
 
-    lake_statistics.append((b,g,r,n,s1,s2,BT_lake,BT_bkgd,cloud_count,water_count,sulphur_count))
+def rgb_to_hsv(r,g,b):  
+  """
+  convert r,g,b lists to h,s,v lists
+  """
+  rgb = list(zip(r,g,b))
+  hsv = [colorsys.rgb_to_hsv(x[0],x[1],x[2]) \
+    if (x[0] and x[1] and x[2]) and np.min(x) >= 0 and np.max(x[1]) <= 1 \
+    else np.repeat(np.NaN,3) for x in rgb]
+  return ([x[0] for x in hsv], [x[1] for x in hsv], [x[2] for x in hsv])
 
-blue  = list(itertools.chain(*[x[0] for x in lake_statistics]))
-green = list(itertools.chain(*[x[1] for x in lake_statistics]))
-red   = list(itertools.chain(*[x[2] for x in lake_statistics]))
-nir   = list(itertools.chain(*[x[3] for x in lake_statistics]))
-swir1 = list(itertools.chain(*[x[4] for x in lake_statistics]))
-swir2 = list(itertools.chain(*[x[5] for x in lake_statistics]))
+def lake_statistics_from_GeoJSON(base_path, target):
+  """
+  read lake statistics from geojson
+  """
 
-BT_lake = list(itertools.chain(*[x[6] for x in lake_statistics]))
-BT_bkgd = list(itertools.chain(*[x[7] for x in lake_statistics]))
+  fpaths = sorted(glob.glob(base_path+'*.geojson'))
 
-cloud_count = list(itertools.chain(*[x[8] for x in lake_statistics]))
-water_count = list(itertools.chain(*[x[9] for x in lake_statistics]))
-sulphur_count = list(itertools.chain(*[x[10] for x in lake_statistics]))
+  lake_statistics = []
+
+  for fpath in fpaths:
+    
+    # feature collection (clean)
+    fc = json.load(open(fpath))['features']  
+    fc = remove_baddies(fc, target)
+
+    date = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
+    fileID = getX(fc, 'fileID')
+    
+    b = getSR(fc, 'blue')
+    g = getSR(fc, 'green')
+    r = getSR(fc, 'red')
+    n = getSR(fc, 'nir')
+    s1 = getSR(fc, 'swir1')
+    s2 = getSR(fc, 'swir2')
+
+    h, s, v = rgb_to_hsv(r, g, b)
+
+    BT_lake = getX(fc, 'BT_lake')
+    BT_bkgd = getX(fc, 'BT_bkgd')
+    dBT = [x[0]-x[1] if not None in x else None for x in list(zip(BT_lake,BT_bkgd))]
+
+    cloud_count = getX(fc, 'cloud_count')
+    water_count = getX(fc, 'water_count')
+    sulphur_count = getX(fc, 'sulphur_count')
+
+    lake_statistics.append((b, g, r, n, s1, s2, h, s, v, \
+    BT_lake, BT_bkgd, dBT, cloud_count, water_count, sulphur_count,\
+    date, fileID))
+
+  return lake_statistics
+
+def build_DataFrame(lake_stats):
+  df = pd.DataFrame({
+  'blue' :list(itertools.chain(*[x[0] for x in lake_stats])),
+  'green':list(itertools.chain(*[x[1] for x in lake_stats])),
+  'red'  :list(itertools.chain(*[x[2] for x in lake_stats])),
+  'nir'  :list(itertools.chain(*[x[3] for x in lake_stats])),
+  'swir1':list(itertools.chain(*[x[4] for x in lake_stats])),
+  'swir2':list(itertools.chain(*[x[5] for x in lake_stats])),
+  'hue':list(itertools.chain(*[x[6] for x in lake_stats])),
+  'saturation':list(itertools.chain(*[x[7] for x in lake_stats])),
+  'value':list(itertools.chain(*[x[8] for x in lake_stats])),
+  'BT_lake':list(itertools.chain(*[x[9] for x in lake_stats])),
+  'BT_bkgd':list(itertools.chain(*[x[10] for x in lake_stats])),
+  'dBT':list(itertools.chain(*[x[11] for x in lake_stats])),
+  'cloud_count':list(itertools.chain(*[x[12] for x in lake_stats])),
+  'water_count':list(itertools.chain(*[x[13] for x in lake_stats])),
+  'sulphur_count':list(itertools.chain(*[x[14] for x in lake_stats])),
+  'date':list(itertools.chain(*[x[15] for x in lake_stats])),
+  'fileID':list(itertools.chain(*[x[16] for x in lake_stats]))
+  })
+  return df
+
+def DateFrame_to_Excel(df, target):
+  """
+  Pandas DataFrame to Microsoft Excel file
+  """
+
+  outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/'+target
+  if not os.path.exists(outdir): os.mkdir(outdir)
+  os.chdir(outdir)
+
+  writer = pd.ExcelWriter('test.xlsx')#target+'_satellite.xlsx'
+  df.to_excel(writer,columns=\
+  ['date','fileID','blue', 'green', 'red', 'nir', 'swir1', 'swir2',\
+  'hue', 'saturation', 'value', 'BT_lake', 'BT_bkgd', 'dBT',\
+  'cloud_count', 'water_count', 'sulphur_count'])
+  
+  #writer.save()
+  print(outdir)
+
+def main():
+  
+  target = 'Kelimutu_b'
+
+  base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
+
+  lake_stats = lake_statistics_from_GeoJSON(base_path,target)
+  df = build_DataFrame(lake_stats)
+  DateFrame_to_Excel(df, target)
+
+if __name__ == '__main__':
+  main()

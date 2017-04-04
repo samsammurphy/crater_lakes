@@ -43,9 +43,9 @@ def bad_fileIDs(target):
   else :
     return []
 
-def cloud_filtered(data,target):
+def cloud_filtered(fileIDs, dates):
   """
-  automatically assign bad fileIDs to images that do not pass cloud filter
+  automatically assign bad fileIDs to images not in cloud_filter_(manually)/
   """
   
   #1) cloud_filtered dates
@@ -53,29 +53,29 @@ def cloud_filtered(data,target):
   fpaths = glob.glob(cloud_filtered_dir+'*.tif')
   good_dates = [os.path.basename(f).split('.')[0] for f in fpaths]
   
-  #2) original fileIDs and dates
-  all_fileIDs = [x['fileID'] for x in data]
-  all_dates = [datetime.datetime.utcfromtimestamp(x['timestamp']) for x in data]
+  #2) input fileIDs and dates
+  #input_fileIDs = [x['fileID'] for x in data]
+  #input_dates = [datetime.datetime.utcfromtimestamp(x['timestamp']) for x in data]
 
   #3) compare dates, append baddies
   
   baddies = []
   
-  for i, date in enumerate(all_dates):
+  for i, date in enumerate(dates):
     if date.strftime('%Y_%m_%d_%H%M') not in good_dates:
-      baddies.append(all_fileIDs[i])
+      baddies.append(fileIDs[i])
   
   return baddies
   
 
-def naughty_list(data,target):
+def naughty_list(target, fileIDs, dates):
   """
   Compile the naughty list from manually selected fileIDs and cloud filter
   assigned fileIDs
   """
   
   baddies = bad_fileIDs(target)
-  baddies += cloud_filtered(data,target)
+  baddies += cloud_filtered(fileIDs, dates)
   
   return baddies
       
