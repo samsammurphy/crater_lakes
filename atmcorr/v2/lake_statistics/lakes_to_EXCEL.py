@@ -129,7 +129,7 @@ def DateFrame_to_Excel(df, target):
   'hue', 'saturation', 'value', 'BT_lake', 'BT_bkgd', 'dBT',\
   'cloud_count', 'water_count', 'sulphur_count'])
   
-  #writer.save()
+  writer.save()
   print(outdir)
 
 def main():

@@ -76,11 +76,13 @@ def pure_hue(R, G, B):
   pure_hue = [colorsys.hsv_to_rgb(x[0],1,1) for x in true_hsv]
   return pure_hue
 
-def rgb_stretch(R,G,B, top):
+def rgb_stretch(R,G,B, target):
   """
   Linear stretch of R, G, B and zip together, 
   """
   
+  top = {'Kelimutu_a':0.2,'Kelimutu_b':0.5,'Kelimutu_c':0.2}[target]
+
   R = np.clip(R/top,0,1)
   G = np.clip(G/top,0,1)
   B = np.clip(B/top,0,1)
@@ -134,7 +136,7 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylabel=False,color='#1f77b4'):
 
 
 # read data
-target = 'Kelimutu_c'
+target = 'Kelimutu_b'
 base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
 df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
 r,g,b,h,s,v,dBT,dt,t = null_handler(df)
@@ -154,7 +156,7 @@ fig = plt.figure(figsize=(8,12))
 axRGB, axH, axS, axV, axT = define_axes(fig)
 
 # RGB color bar
-plot_colorbar(axRGB,[rgb_stretch(R,G,B, 0.2)],ylabel = 'RGB')
+plot_colorbar(axRGB,[rgb_stretch(R, G, B, target)],ylabel = 'RGB')
 
 # hue color bar
 plot_colorbar(axH,[Hue], ylabel='hue')
@@ -177,7 +179,7 @@ outdir = '/home/sam/git/crater_lakes/plots/'+target
 if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
-#plt.savefig(target+'_v6.png')
+plt.savefig(target+'_v6.png')
 #plt.close()
 
 
