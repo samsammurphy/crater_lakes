@@ -136,7 +136,7 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylabel=False,color='#1f77b4'):
 
 
 # read data
-target = 'Kelimutu_b'
+target = 'Kelimutu_a'
 base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
 df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
 r,g,b,h,s,v,dBT,dt,t = null_handler(df)
@@ -172,7 +172,7 @@ plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
 axT.set_xlabel('Year')
 
 # display
-plt.show()
+# plt.show()
 
 # save
 outdir = '/home/sam/git/crater_lakes/plots/'+target
@@ -180,7 +180,7 @@ if not os.path.exists(outdir):
   os.mkdir(outdir)
 os.chdir(outdir)
 plt.savefig(target+'_v6.png')
-#plt.close()
+plt.close()
 
 
 
