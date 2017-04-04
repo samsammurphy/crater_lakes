@@ -120,7 +120,7 @@ def DateFrame_to_Excel(df, target):
   if not os.path.exists(outdir): os.mkdir(outdir)
   os.chdir(outdir)
 
-  writer = pd.ExcelWriter('test.xlsx')#target+'_satellite.xlsx'
+  writer = pd.ExcelWriter(target+'_satellite.xlsx')#target+'_satellite.xlsx'
   df.to_excel(writer,columns=\
   ['date','fileID','blue', 'green', 'red', 'nir', 'swir1', 'swir2',\
   'hue', 'saturation', 'value', 'BT_lake', 'BT_bkgd', 'dBT',\
