@@ -134,13 +134,20 @@ def DateFrame_to_Excel(df, target):
 
 def main():
   
-  target = 'Kelimutu_c'
-  
-  base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
-  
-  lake_stats = lake_statistics_from_GeoJSON(base_path,target)
-  df = build_DataFrame(lake_stats)
-  DateFrame_to_Excel(df, target)
+  args = sys.argv[1:]
+
+  if len(args) != 1:
+    print('usage: python3 lakes_to_EXCEL.py {target_name}')
+    return
+  else:
+    target = args[0]
+  try:
+    base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
+    lake_stats = lake_statistics_from_GeoJSON(base_path,target)
+    df = build_DataFrame(lake_stats)
+    DateFrame_to_Excel(df, target)
+  except:
+    print('problem running with : '+target)
 
 if __name__ == '__main__':
   main()
