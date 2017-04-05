@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_time_series_v5.py
+plot_time_series_v6.py
 
 Created on Mon Feb  6 20:53:54 2017
 @author: sam
 """
 import os
+import sys
 import pandas as pd
 import numpy as np
 import datetime
@@ -16,22 +17,6 @@ import matplotlib.pylab as plt
 import matplotlib.dates as mdates
 import colorsys
 import math
-
-
-def define_axes(fig):
-
-  plot_height = 0.22
-  bar = 0.15
-  minibar = 0.03
-  gap = 0.05
-  mini_gap = 0.03
-  axRGB = fig.add_axes([0.1,gap+3*plot_height+3*mini_gap+minibar,0.87,bar])
-  axH = fig.add_axes([0.1,gap+3*plot_height+2.5*mini_gap,0.87,minibar])
-  axS = fig.add_axes([0.1,gap+2*plot_height+2*mini_gap,0.87,plot_height])
-  axV = fig.add_axes([0.1,gap+plot_height+mini_gap,0.87,plot_height])
-  axT = fig.add_axes([0.1,gap,0.87,plot_height])
-  
-  return (axRGB, axH, axS, axV, axT)
 
 
 def null_handler(df):
@@ -113,6 +98,21 @@ def boxcar_average(D,Y,N):
   
   return (boxD, boxY)
 
+def define_axes(fig):
+
+  plot_height = 0.22
+  bar = 0.15
+  minibar = 0.03
+  gap = 0.05
+  mini_gap = 0.03
+  axRGB = fig.add_axes([0.1,gap+3*plot_height+3*mini_gap+minibar,0.87,bar])
+  axH = fig.add_axes([0.1,gap+3*plot_height+2.5*mini_gap,0.87,minibar])
+  axS = fig.add_axes([0.1,gap+2*plot_height+2*mini_gap,0.87,plot_height])
+  axV = fig.add_axes([0.1,gap+plot_height+mini_gap,0.87,plot_height])
+  axT = fig.add_axes([0.1,gap,0.87,plot_height])
+  
+  return (axRGB, axH, axS, axV, axT)
+
 def plot_colorbar(ax,image,ylabel=False):
   ax.imshow(image, interpolation='nearest', aspect='auto')
   ax.set_xticks([])
@@ -134,56 +134,72 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylabel=False,color='#1f77b4'):
   # make the dates exact
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 
+def plotting_manager(target):
+  """
+  Loads data, creates figures, inserts subplots
+  """
+  
+  # read data
+  base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
+  df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
+  r,g,b,h,s,v,dBT,dt,t = null_handler(df)
 
-# read data
-target = 'Kelimutu_a'
-base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
-df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
-r,g,b,h,s,v,dBT,dt,t = null_handler(df)
+  # define time period
+  start = datetime.datetime(1987,1,1)
+  stop  = datetime.datetime(2017,1,1) 
 
-# define time period
-start = datetime.datetime(1987,1,1)
-stop  = datetime.datetime(2017,1,1) 
+  # interpolate r, g, b
+  R, G, B = interpolate_triplet(r,g,b,t,start,stop)
 
-# interpolate r, g, b
-R, G, B = interpolate_triplet(r,g,b,t,start,stop)
+  # Idealized Hue (saturation = 1, value = 1)
+  Hue = pure_hue(R,G,B)
 
-# Idealized Hue (saturation = 1, value = 1)
-Hue = pure_hue(R,G,B)
+  # define figure
+  fig = plt.figure(figsize=(8,12))
+  axRGB, axH, axS, axV, axT = define_axes(fig)
 
-# define figure
-fig = plt.figure(figsize=(8,12))
-axRGB, axH, axS, axV, axT = define_axes(fig)
+  # RGB color bar
+  plot_colorbar(axRGB,[rgb_stretch(R, G, B, target)],ylabel = 'RGB')
 
-# RGB color bar
-plot_colorbar(axRGB,[rgb_stretch(R, G, B, target)],ylabel = 'RGB')
+  # hue color bar
+  plot_colorbar(axH,[Hue], ylabel='hue')
 
-# hue color bar
-plot_colorbar(axH,[Hue], ylabel='hue')
+  # saturation
+  plot_timeseries(axS,t,dt,s,start,stop,ylabel='saturation')
 
-# saturation
-plot_timeseries(axS,t,dt,s,start,stop,ylabel='saturation')
+  # value
+  plot_timeseries(axV,t,dt,v,start,stop,ylabel='value')
 
-# value
-plot_timeseries(axV,t,dt,v,start,stop,ylabel='value')
+  # delta temperatures
+  plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
+  axT.set_xlabel('Year')
 
-# delta temperatures
-plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
-axT.set_xlabel('Year')
+  # plt.show()
 
-# display
-# plt.show()
+  # save
+  outdir = '/home/sam/git/crater_lakes/plots/'+target
+  if not os.path.exists(outdir):
+    os.mkdir(outdir)
+  os.chdir(outdir)
+  plt.savefig(target+'_v6.png')
+  plt.close()
+  print('saved: '+target)
 
-# save
-outdir = '/home/sam/git/crater_lakes/plots/'+target
-if not os.path.exists(outdir):
-  os.mkdir(outdir)
-os.chdir(outdir)
-plt.savefig(target+'_v6.png')
-plt.close()
+def main():
+  
+  args = sys.argv[1:]
 
+  if len(args) != 1:
+    print('usage: python3 plot_time_series_v6.py {target_name}')
+    return
+  try:
+    target = args[0]
+    plotting_manager(target)
+  except:
+    print('problem running with :'+target)
 
-
+if __name__ == '__main__':
+  main()
 
 
 
