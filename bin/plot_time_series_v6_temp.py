@@ -174,16 +174,16 @@ def plotting_manager(target):
   plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
   axT.set_xlabel('Year')
 
-  plt.show()
+  # plt.show()
 
-  # # save
-  # outdir = '/home/sam/git/crater_lakes/plots/'+target
-  # if not os.path.exists(outdir):
-  #   os.mkdir(outdir)
-  # os.chdir(outdir)
-  # plt.savefig(target+'_v6.png')
-  # plt.close()
-  # print('saved: '+target)
+  # save
+  outdir = '/home/sam/git/crater_lakes/plots/Kelimutu'
+  if not os.path.exists(outdir):
+    os.mkdir(outdir)
+  os.chdir(outdir)
+  plt.savefig(target+'_v6_temp.png')
+  plt.close()
+  print('saved: '+target)
 
 def main():
   
