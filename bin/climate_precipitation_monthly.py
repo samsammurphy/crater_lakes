@@ -10,6 +10,7 @@ Created on Tue Mar 21 13:06:12 2017
 import pandas as pd
 import matplotlib.pylab as plt
 
+
 # load data
 df = pd.read_csv('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/climate/satellite/precipitation_history.csv',\
                  parse_dates = ['system:index'])
@@ -17,14 +18,14 @@ df = pd.read_csv('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/climat
 # set time index
 df = df.set_index(pd.DatetimeIndex(df['system:index']))
 
-# time slice
-start = df.index.searchsorted(pd.datetime(2012,7,1))
-stop = df.index.searchsorted(pd.datetime(2016,7,1))
-df = df.ix[start:stop]
-
+# sum monthly
 monthly = df.resample('1M').agg('sum')
 
-plt.plot(monthly.precipitation,'*-')
-plt.xlabel('Date')
-plt.ylabel('Precipitation (mm)')
+# mean for month of year
+mm = monthly.groupby([monthly.index.month]).mean()
+
+# plot
+plt.plot(mm.precipitation,'*-')
+plt.xlabel('Month')
+plt.ylabel('monthly precipitation (mm)')
 plt.show()
