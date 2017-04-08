@@ -135,7 +135,7 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylim=False,ylabel=False,color='#1f77b4'
   # make the dates exact
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 
-def plotting_manager(target):
+def plotting_manager(target, save=False):
   """
   Loads data, creates figures, inserts subplots
   """
@@ -175,27 +175,36 @@ def plotting_manager(target):
   plot_timeseries(axT,t,dt,dBT,start,stop,ylim=(-15,25),ylabel=r'$\Delta$T ($^{o}$C)',color='k')
   axT.set_xlabel('Year')
 
-#   plt.show()
-
-#   # save
-  outdir = '/home/sam/git/crater_lakes/plots/Kelimutu'
-  if not os.path.exists(outdir):
-    os.mkdir(outdir)
-  os.chdir(outdir)
-  plt.savefig(target+'_v7.png')
-  plt.close()
-  print('saved: '+target)
+  # save
+  if save:
+    outdir = '/home/sam/git/crater_lakes/plots/Kelimutu'
+    if not os.path.exists(outdir):
+      os.mkdir(outdir)
+    os.chdir(outdir)
+    plt.savefig(target+'_v7.png')
+    plt.close()
+    print('saved: '+target)
+  else:
+    plt.show()
 
 def main():
   
   args = sys.argv[1:]
 
-  if len(args) != 1:
-    print('usage: python3 plot_time_series_v7.py {target_name}')
+  if len(args) == 0:
+    print('usage: python3 plot_time_series_v7.py {target_name} {--save}')
     return
   try:
-    target = args[0]
-    plotting_manager(target)
+    target = args.pop(0)
+    save = False
+    if args:
+      keyword = args[0]
+      if keyword == '--save':
+        save = True
+      else:
+        print('keyword not recognized: '+keyword)
+      
+    plotting_manager(target, save=save)
   except:
     print('problem running with :'+target)
 
