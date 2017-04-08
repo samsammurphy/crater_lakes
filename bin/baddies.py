@@ -4,7 +4,7 @@
 
 baddies.py
 
-- a bad image files manager
+- a bad image manager
 
 1) manual selection
 2) cloud filtered
@@ -26,9 +26,13 @@ def bad_fileIDs(target):
       
       'Kelimutu_a':['LT51120662008282ASA00',\
                     'LT51120661997331ASA00',\
-                    'LT51120661996345DKI00'],
+                    'LT51120661996345DKI00',\
+                    'LT51120661996329ASA00',\
+                    'LT51120662007151ASA00'],
       
-      'Kelimutu_c': ['LT51120662000004ASA00'],
+      'Kelimutu_c': ['LT51120662000004ASA00',\
+                     'LT51120661996329ASA00',\
+                     'LT51120662007151ASA00'],
                   
       'Yugama':['LT51080352001058BJC00',\
                 'LT51080352001138BJC01',\
