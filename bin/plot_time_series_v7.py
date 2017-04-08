@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_time_series_v6.py
+plot_time_series_v7.py
 
 Created on Mon Feb  6 20:53:54 2017
 @author: sam
@@ -166,32 +166,32 @@ def plotting_manager(target):
   plot_colorbar(axH,[Hue], ylabel='hue')
 
   # saturation
-  plot_timeseries(axS,t,dt,s,start,stop,ylabel='saturation')
+  plot_timeseries(axS,t,dt,s,start,stop,ylim=(0,0.8),ylabel='saturation')
 
   # value
-  plot_timeseries(axV,t,dt,v,start,stop,ylabel='value')
+  plot_timeseries(axV,t,dt,v,start,stop,ylim=(0,0.5),ylabel='value')
 
   # delta temperatures
-  plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
+  plot_timeseries(axT,t,dt,dBT,start,stop,ylim=(-15,25),ylabel=r'$\Delta$T ($^{o}$C)',color='k')
   axT.set_xlabel('Year')
 
-  plt.show()
+#   plt.show()
 
-  # # save
-  # outdir = '/home/sam/git/crater_lakes/plots/'+target
-  # if not os.path.exists(outdir):
-  #   os.mkdir(outdir)
-  # os.chdir(outdir)
-  # plt.savefig(target+'_v6.png')
-  # plt.close()
-  # print('saved: '+target)
+#   # save
+  outdir = '/home/sam/git/crater_lakes/plots/Kelimutu'
+  if not os.path.exists(outdir):
+    os.mkdir(outdir)
+  os.chdir(outdir)
+  plt.savefig(target+'_v7.png')
+  plt.close()
+  print('saved: '+target)
 
 def main():
   
   args = sys.argv[1:]
 
   if len(args) != 1:
-    print('usage: python3 plot_time_series_v6.py {target_name}')
+    print('usage: python3 plot_time_series_v7.py {target_name}')
     return
   try:
     target = args[0]
