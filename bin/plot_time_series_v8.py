@@ -98,16 +98,17 @@ def boxcar_average(D,Y,N):
 
 def define_axes(fig):
 
-  plot_height = 0.22
-  bar = 0.15
-  minibar = 0.03
-  gap = 0.05
+  rgbbar = 0.08
+  huebar = 0.04
   mini_gap = 0.03
-  axRGB = fig.add_axes([0.1,gap+3*plot_height+3*mini_gap+minibar,0.87,bar])
-  axH = fig.add_axes([0.1,gap+3*plot_height+2.5*mini_gap,0.87,minibar])
-  axS = fig.add_axes([0.1,gap+2*plot_height+2*mini_gap,0.87,plot_height])
-  axV = fig.add_axes([0.1,gap+plot_height+mini_gap,0.87,plot_height])
-  axT = fig.add_axes([0.1,gap,0.87,plot_height])
+  gap = 0.05
+  graph_height = 0.24
+
+  axRGB = fig.add_axes([0.1,gap+3*graph_height+3*mini_gap+huebar,0.87,rgbbar])
+  axH = fig.add_axes([0.1,gap+3*graph_height+2.5*mini_gap,0.87,huebar])
+  axS = fig.add_axes([0.1,gap+2*graph_height+2*mini_gap,0.87,graph_height])
+  axV = fig.add_axes([0.1,gap+graph_height+mini_gap,0.87,graph_height])
+  axT = fig.add_axes([0.1,gap,0.87,graph_height])
   
   return (axRGB, axH, axS, axV, axT)
 
@@ -154,11 +155,11 @@ def plotting_manager(target, save=False):
   Hue = pure_hue(R,G,B)
 
   # define figure
-  fig = plt.figure(figsize=(8,12))
+  fig = plt.figure(figsize=(6,12))
   axRGB, axH, axS, axV, axT = define_axes(fig)
 
   # define top value
-  top = {'Kelimutu_a':0.14,'Kelimutu_b':0.4,'Kelimutu_c':0.2}[target]
+  top = {'Kelimutu_a':0.14,'Kelimutu_b':0.5,'Kelimutu_c':0.2}[target]
 
   # RGB color bar
   plot_colorbar(axRGB,[rgb_stretch(R, G, B, top)],ylabel = 'RGB')
