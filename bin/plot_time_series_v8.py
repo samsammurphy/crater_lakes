@@ -134,7 +134,7 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylim=False,ylabel=False,color='#1f77b4'
   # make the dates exact
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 
-def plotting_manager(target, save=False):
+def plotting_manager(target, start, stop, save=False):
   """
   Loads data, creates figures, inserts subplots
   """
@@ -143,10 +143,6 @@ def plotting_manager(target, save=False):
   base_dir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu'
   df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
   r,g,b,h,s,v,dBT,dt,t = null_handler(df)
-
-  # define time period
-  start = datetime.datetime(1987,1,1)
-  stop  = datetime.datetime(2017,1,1) 
 
   # interpolate r, g, b
   R, G, B = interpolate_triplet(r,g,b,t,start,stop)
@@ -205,8 +201,13 @@ def main():
         save = True
       else:
         print('keyword not recognized: '+keyword)
-      
-    plotting_manager(target, save=save)
+    
+    # define time period
+    start = datetime.datetime(1987,1,1)
+    stop  = datetime.datetime(2017,1,1)
+    
+    # create plot
+    plotting_manager(target, start, stop, save=save)
   except:
     print('problem running with :'+target)
 
