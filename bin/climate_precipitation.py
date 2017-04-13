@@ -18,11 +18,11 @@ df = pd.read_csv('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/climat
 df = df.set_index(pd.DatetimeIndex(df['system:index']))
 
 # time slice
-start = df.index.searchsorted(pd.datetime(2013,7,1))
-stop = df.index.searchsorted(pd.datetime(2015,7,1))
+start = df.index.searchsorted(pd.datetime(1990,1,1))
+stop = df.index.searchsorted(pd.datetime(1999,1,1))
 df = df.ix[start:stop]
 
-monthly = df.resample('1M').agg('sum')
+monthly = df.resample('3M').agg('sum')
 
 fig = plt.figure(figsize=(24,12))
 plt.plot(monthly.precipitation,'--')
