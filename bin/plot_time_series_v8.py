@@ -203,8 +203,8 @@ def main():
         print('keyword not recognized: '+keyword)
     
     # define time period
-    start = datetime.datetime(1987,1,1)
-    stop  = datetime.datetime(2017,1,1)
+    start = datetime.datetime(1995,1,1)
+    stop  = datetime.datetime(2005,1,1)
     
     # create plot
     plotting_manager(target, start, stop, save=save)
