@@ -155,7 +155,7 @@ def plotting_manager(target, start, stop, save=False):
   axRGB, axH, axS, axV, axT = define_axes(fig)
 
   # define top value
-  top = {'Kelimutu_a':0.14,'Kelimutu_b':0.5,'Kelimutu_c':0.2}[target]
+  top = {'Kelimutu_a':0.14,'Kelimutu_b':0.5,'Kelimutu_c':0.15}[target]
 
   # RGB color bar
   plot_colorbar(axRGB,[rgb_stretch(R, G, B, top)],ylabel = 'RGB')
@@ -203,8 +203,8 @@ def main():
         print('keyword not recognized: '+keyword)
     
     # define time period
-    start = datetime.datetime(1995,1,1)
-    stop  = datetime.datetime(2005,1,1)
+    start = datetime.datetime(2009,1,1)
+    stop  = datetime.datetime(2017,1,1)
     
     # create plot
     plotting_manager(target, start, stop, save=save)
