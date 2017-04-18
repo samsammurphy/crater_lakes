@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import math
 import datetime
-from Py6S import *
+# from Py6S import * debugging
 
 
 def load_ilut(sensor_name, aerosol):
@@ -154,7 +154,7 @@ def main():
   atms['swir2_tau2'] = [x[22] for x in sixs_outputs]
   atms['swir2_Lp']   = [x[23] for x in sixs_outputs]
 
-  # create fileIDs (i.e. from merged system:index)
+  # create fileIDs (i.e. will strip system:index to handle merged image collections)
   atms['fileID'] = [x.split('_')[-1] for x in atms['system:index']]
 
   # export to csv
