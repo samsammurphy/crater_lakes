@@ -53,9 +53,6 @@ class Atmospheric():
     Amer. Meteor. Soc., 77, 437-471)
     """
     
-    # Point geometry required
-    centroid = geom.centroid()
-    
     # H2O datetime is in 6 hour intervals
     H2O_date = Atmospheric.round_date(date,6)
     
@@ -66,7 +63,7 @@ class Atmospheric():
     water_img = ee.Image(water_ic.first())
     
     #water_vapour at target
-    water = water_img.reduceRegion(reducer=ee.Reducer.mean(), geometry=centroid).get('pr_wtr')
+    water = water_img.reduceRegion(reducer=ee.Reducer.mean(), geometry=geom.centroid()).get('pr_wtr')
                                         
     #convert to Py6S units (Google = kg/m^2, Py6S = g/cm^2)
     water_Py6S_units = ee.Number(water).divide(10)                                   
@@ -125,29 +122,24 @@ class Atmospheric():
       
       # return scalar fill value
       return fill_image.reduceRegion(reducer=ee.Reducer.mean(), geometry=centroid).get('ozone')
-     
-    def ozone_main():
       
-      # O3 datetime in 24 hour intervals
-      O3_date = Atmospheric.round_date(date,24)
-      
-      # TOMS temporal gap
-      TOMS_gap = ee.DateRange('1994-11-01','1996-08-01')  
-      
-      # avoid TOMS gap entirely
-      ozone = ee.Algorithms.If(TOMS_gap.contains(O3_date),ozone_fill(centroid,O3_date),ozone_measurement(centroid,O3_date))
-      
-      # fix other data gaps (e.g. spatial, missing images, etc..)
-      ozone = ee.Algorithms.If(ozone,ozone,ozone_fill(centroid,O3_date))
-      
-      #convert to Py6S units 
-      ozone_Py6S_units = ee.Number(ozone).divide(1000)# (i.e. Dobson units are milli-atm-cm )                             
-      
-      return ozone_Py6S_units
-      
-    return ozone_main()
-  
-  
+    # O3 datetime in 24 hour intervals
+    O3_date = Atmospheric.round_date(date,24)
+    
+    # TOMS temporal gap
+    TOMS_gap = ee.DateRange('1994-11-01','1996-08-01')  
+    
+    # avoid TOMS gap entirely
+    ozone = ee.Algorithms.If(TOMS_gap.contains(O3_date),ozone_fill(centroid,O3_date),ozone_measurement(centroid,O3_date))
+    
+    # fix other data gaps (e.g. spatial, missing images, etc..)
+    ozone = ee.Algorithms.If(ozone,ozone,ozone_fill(centroid,O3_date))
+    
+    #convert to Py6S units 
+    ozone_Py6S_units = ee.Number(ozone).divide(1000)# (i.e. Dobson units are milli-atm-cm )                             
+    
+    return ozone_Py6S_units
+
 
   def aerosol(geom,date):
     """
