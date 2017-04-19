@@ -33,11 +33,7 @@ RGB_list = L4.merge(L5).merge(L7).merge(L8).map(toRGB).toList(1000)
 num = RGB_list.length().getInfo()
 
 # export list elements
-<<<<<<< HEAD
-for i in range(0,num):
-=======
 for i in range(466,num):
->>>>>>> master
    
   # this rgb visual
   rgb = ee.Image(RGB_list.get(i))
