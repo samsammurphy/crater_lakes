@@ -1,4 +1,4 @@
-import os 
+import os
 import glob
 import json
 import itertools
@@ -7,31 +7,31 @@ import datetime
 import pandas as pd
 import numpy as np
 
-import sys 
+import sys
 sys.path.append('/home/sam/git/crater_lakes/bin')
 from baddies import naughty_list
 
-def remove_baddies(fc,target):
+def remove_baddies(fc, target):
   """
   Removes bad files from feature collection 
   1) from bad fileID list
   2) from not in cloud_filtered_(manually)/
   """
-  
+
   # full fileIDs and dates (these lists will be cloud filtered in level up)
   fileIDs = [x['properties']['fileID'] for x in fc]
   dates = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
   bad_files = naughty_list(target, fileIDs, dates)
   ok = np.array([x['properties']['fileID'] not in bad_files for x in fc])
-  
-  return np.compress(ok,fc)
+
+  return np.compress(ok, fc)
 
 def getSR(fc, bandname):
   """
   surface reflectance time series from feature collection
   """
   return [feature['properties']['lake_SR'][bandname] for feature in fc]
-
+  
 def getX(fc, varname):
   """
   all other time series from feature collection
@@ -119,7 +119,7 @@ def DateFrame_to_Excel(df, target):
   Pandas DataFrame to Microsoft Excel file
   """
   
-  outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kelimutu/'+target
+  outdir = '/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/'+target
   if not os.path.exists(outdir): os.mkdir(outdir)
   os.chdir(outdir)
   
@@ -139,15 +139,12 @@ def main():
   if len(args) != 1:
     print('usage: python3 lakes_to_EXCEL.py {target_name}')
     return
-  else:
-    target = args[0]
-  try:
-    base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
-    lake_stats = lake_statistics_from_GeoJSON(base_path,target)
-    df = build_DataFrame(lake_stats)
-    DateFrame_to_Excel(df, target)
-  except:
-    print('problem running with : '+target)
+
+  target = args[0]
+  base_path = '/home/sam/git/crater_lakes/atmcorr/v2/lake_statistics/{}/'.format(target)
+  lake_stats = lake_statistics_from_GeoJSON(base_path,target)
+  df = build_DataFrame(lake_stats)
+  DateFrame_to_Excel(df, target)
 
 if __name__ == '__main__':
   main()
