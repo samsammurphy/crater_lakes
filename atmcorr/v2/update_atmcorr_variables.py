@@ -9,25 +9,31 @@ import pandas as pd
 import numpy as np
 import math
 import datetime
-# from Py6S import * debugging
 
+def load_iluts(aerosol):
 
-def load_ilut(sensor_name, aerosol):
-  """
-  Loads interpolated look up table (required for 6S emulation)
-  """
+  def load_ilut(sensor_name, aerosol):
+    """
+    Loads interpolated look up table (required for 6S emulation)
+    """
 
-  iLUT = {}
-  band_names = ['blue','green','red','nir','swir1','swir2']
+    iLUT = {}
+    band_names = ['blue','green','red','nir','swir1','swir2']
 
-  base_path = '/home/sam/git/atmcorr_py6s/iLUTs/'
-  full_path = os.path.join(base_path,sensor_name+'_'+aerosol,'viewz_0/')
-  filepaths = sorted(glob.glob(full_path+'*.ilut'))
+    base_path = '/home/sam/git/atmcorr_py6s/iLUTs/'
+    full_path = os.path.join(base_path,sensor_name+'_'+aerosol,'viewz_0/')
+    filepaths = sorted(glob.glob(full_path+'*.ilut'))
 
-  for i, filepath in enumerate(filepaths):
-    iLUT[band_names[i]] = pickle.load(open(filepath,'rb'))
+    for i, filepath in enumerate(filepaths):
+      iLUT[band_names[i]] = pickle.load(open(filepath,'rb'))
 
-  return iLUT
+    return iLUT
+  
+  return {
+  'TM':load_ilut('LANDSAT_TM',aerosol),
+  'ETM':load_ilut('LANDSAT_ETM',aerosol),
+  'OLI':load_ilut('LANDSAT_OLI',aerosol)  
+  }
 
 def iLUT_select(iLUTs,p):
   """
@@ -61,13 +67,12 @@ def elliptical_orbit_correction(p):
 
 def emulate_6S(iLUT,p,km):
   """
-  Emulates 6S (i.e. single waveband correction coefficients)
+  Emulates 6S (i.e. generate single waveband correction coefficients)
   """
-
   # perihelion
   Edir, Edif, tau2, Lp = iLUT(p['solar_z'],p['H2O'],p['O3'],p['AOT'],km)
 
-  # corrected for orbit
+  # corrected for Earth's orbit
   orbit_correction = elliptical_orbit_correction(p)
   Edir = Edir * orbit_correction
   Edif = Edif * orbit_correction
@@ -75,38 +80,16 @@ def emulate_6S(iLUT,p,km):
 
   return (Edir,Edif,tau2,Lp)
 
-def main():
+def atmospheric_correction_coefficients(iLUTs, atmvars, km):
+  
+  result = []
 
-  # aerosol profile
-  if len(sys.argv) != 2:
-    sys.exit('usage: python3 update_atmcorr_variables.py {aerosol}')
-  aerosol = sys.argv[1]
+  for i in range(len(atmvars.index)):
 
-  # load interpolated look up tables
-  iLUTs = {
-  'TM':load_ilut('LANDSAT_TM',aerosol),
-  'ETM':load_ilut('LANDSAT_ETM',aerosol),
-  'OLI':load_ilut('LANDSAT_OLI',aerosol)  
-  }
-
-  # atmospheric variables
-  atms = pd.read_csv('/home/sam/git/crater_lakes/atmcorr/atmospheric_variables.csv')
-  size = len(atms.index)
-
-  # target altitude
-  target = 'Kelimutu'
-  alts = pd.read_csv('/home/sam/git/crater_lakes/atmcorr/altitudes_full.csv')
-  km = alts.altitude[alts.name[alts.name.str.contains(target)].index[0]] / 1000
-
-  # outputs
-  sixs_outputs = []
-
-  for i in range(size):
-
-    print('{} of {}'.format(i+1,size))
+    print('{} of {}'.format(i+1,len(atmvars.index)))
 
     # parameters (atmospheric variables in row)
-    p = atms.iloc()[i]
+    p = atmvars.iloc()[i]
 
     # select iLUT
     iLUT = iLUT_select(iLUTs,p)
@@ -120,45 +103,94 @@ def main():
     swir2 =  emulate_6S(iLUT['swir2'],p,km)
 
     # append as single list
-    sixs_outputs.append(list(blue)+list(green)+list(red)+list(nir)+list(swir1)+list(swir2))
+    result.append(list(blue)+list(green)+list(red)+list(nir)+list(swir1)+list(swir2))
 
+  return result
 
-  # add to dataframe
-  atms['blue_Edir'] = [x[0] for x in sixs_outputs]
-  atms['blue_Edif'] = [x[1] for x in sixs_outputs]
-  atms['blue_tau2'] = [x[2] for x in sixs_outputs]
-  atms['blue_Lp']   = [x[3] for x in sixs_outputs]
+def updated_dateframe(atmvars,atmcorr):
+  
+  df = atmvars
 
-  atms['green_Edir'] = [x[4] for x in sixs_outputs]
-  atms['green_Edif'] = [x[5] for x in sixs_outputs]
-  atms['green_tau2'] = [x[6] for x in sixs_outputs]
-  atms['green_Lp']   = [x[7] for x in sixs_outputs]
+  df['blue_Edir'] = [x[0] for x in atmcorr]
+  df['blue_Edif'] = [x[1] for x in atmcorr]
+  df['blue_tau2'] = [x[2] for x in atmcorr]
+  df['blue_Lp']   = [x[3] for x in atmcorr]
 
-  atms['red_Edir'] = [x[8] for x in sixs_outputs]
-  atms['red_Edif'] = [x[9] for x in sixs_outputs]
-  atms['red_tau2'] = [x[10] for x in sixs_outputs]
-  atms['red_Lp']   = [x[11] for x in sixs_outputs]
+  df['green_Edir'] = [x[4] for x in atmcorr]
+  df['green_Edif'] = [x[5] for x in atmcorr]
+  df['green_tau2'] = [x[6] for x in atmcorr]
+  df['green_Lp']   = [x[7] for x in atmcorr]
 
-  atms['nir_Edir'] = [x[12] for x in sixs_outputs]
-  atms['nir_Edif'] = [x[13] for x in sixs_outputs]
-  atms['nir_tau2'] = [x[14] for x in sixs_outputs]
-  atms['nir_Lp']   = [x[15] for x in sixs_outputs]
+  df['red_Edir'] = [x[8] for x in atmcorr]
+  df['red_Edif'] = [x[9] for x in atmcorr]
+  df['red_tau2'] = [x[10] for x in atmcorr]
+  df['red_Lp']   = [x[11] for x in atmcorr]
 
-  atms['swir1_Edir'] = [x[16] for x in sixs_outputs]
-  atms['swir1_Edif'] = [x[17] for x in sixs_outputs]
-  atms['swir1_tau2'] = [x[18] for x in sixs_outputs]
-  atms['swir1_Lp']   = [x[19] for x in sixs_outputs]
+  df['nir_Edir'] = [x[12] for x in atmcorr]
+  df['nir_Edif'] = [x[13] for x in atmcorr]
+  df['nir_tau2'] = [x[14] for x in atmcorr]
+  df['nir_Lp']   = [x[15] for x in atmcorr]
 
-  atms['swir2_Edir'] = [x[20] for x in sixs_outputs]
-  atms['swir2_Edif'] = [x[21] for x in sixs_outputs]
-  atms['swir2_tau2'] = [x[22] for x in sixs_outputs]
-  atms['swir2_Lp']   = [x[23] for x in sixs_outputs]
+  df['swir1_Edir'] = [x[16] for x in atmcorr]
+  df['swir1_Edif'] = [x[17] for x in atmcorr]
+  df['swir1_tau2'] = [x[18] for x in atmcorr]
+  df['swir1_Lp']   = [x[19] for x in atmcorr]
+
+  df['swir2_Edir'] = [x[20] for x in atmcorr]
+  df['swir2_Edif'] = [x[21] for x in atmcorr]
+  df['swir2_tau2'] = [x[22] for x in atmcorr]
+  df['swir2_Lp']   = [x[23] for x in atmcorr]
 
   # create fileIDs (i.e. will strip system:index to handle merged image collections)
-  atms['fileID'] = [x.split('_')[-1] for x in atms['system:index']]
+  df['fileID'] = [x.split('_')[-1] for x in df['system:index']]
 
+  return df
+
+
+def main():
+
+  args = sys.argv[1:]
+  if not args:
+    print('usage: $ python3 update_atmcorr_variables.py {target} {aerosol_profile} \n'
+    'must specify at least the target name')
+    return
+
+  # target name (i.e. should be same as in export_atmcorr_variables.py)
+  target = args.pop(0)
+
+  # aerosol profile
+  aerosol = 'CO'
+  if args:
+    if args[0] in ['CO','MA','BB','UR','DE']:
+      aerosol = args[0]
+    else:
+      print("aerosol profile not recognized: '{}' \n"
+      "will use default profile: 'CO' (i.e. continental) \n"
+      "other options include: \n'MA' = maritime \n'UR' = urban\n"
+      "'DE' = desert \n'BB' = biomass burning \n"
+      " warning! may need to build interpolated LUTs if they don't exist already!"\
+      .format(args[0]))
+
+  # load interpolated look up tables
+  iLUTs = load_iluts(aerosol)
+
+  # atmospheric variables
+  atmvars = pd.read_csv('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kawah_Ijen/atmcorr/'
+  'atmospheric_variables_{0}.csv'.format(target))
+
+  # target altitude
+  alts = pd.read_csv('/home/sam/git/crater_lakes/atmcorr/v2/altitudes_full.csv')
+  km = alts.altitude[alts.name[alts.name.str.contains(target)].index[0]] / 1000
+
+  # atmospheric correction (i.e. emulate 6S radiative transfer code)
+  atmcorr = atmospheric_correction_coefficients(iLUTs, atmvars, km)
+
+  # updated dateframe
+  df = updated_dateframe(atmvars,atmcorr)
+  
   # export to csv
-  atms.to_csv('/home/sam/git/crater_lakes/atmcorr/atmospheric_variables_6S_'+aerosol+'.csv',\
+  df.to_csv('/home/sam/Dropbox/HIGP/Crater_Lakes/Dmitri_Sam/Kawah_Ijen/atmcorr'
+  '/atmospheric_variables_{0}_{1}.csv'.format(target,aerosol),\
   columns = ['fileID','datetime','H2O','O3','AOT','solar_z',\
   'blue_Edir','blue_Edif','blue_tau2','blue_Lp',\
   'green_Edir','green_Edif','green_tau2','green_Lp',\
