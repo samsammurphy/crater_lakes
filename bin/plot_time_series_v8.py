@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 
-plot_time_series_v6.py
+plot_time_series_v7.py
 
 Created on Mon Feb  6 20:53:54 2017
 @author: sam
@@ -61,12 +61,10 @@ def pure_hue(R, G, B):
   pure_hue = [colorsys.hsv_to_rgb(x[0],1,1) for x in true_hsv]
   return pure_hue
 
-def rgb_stretch(R,G,B, target):
+def rgb_stretch(R,G,B, top):
   """
   Linear stretch of R, G, B and zip together, 
   """
-  
-  top = {'Kelimutu_a':0.15,'Kelimutu_b':0.4,'Kelimutu_c':0.15}[target]
 
   R = np.clip(R/top,0,1)
   G = np.clip(G/top,0,1)
@@ -100,16 +98,17 @@ def boxcar_average(D,Y,N):
 
 def define_axes(fig):
 
-  plot_height = 0.22
-  bar = 0.15
-  minibar = 0.03
-  gap = 0.05
+  rgbbar = 0.08
+  huebar = 0.04
   mini_gap = 0.03
-  axRGB = fig.add_axes([0.1,gap+3*plot_height+3*mini_gap+minibar,0.87,bar])
-  axH = fig.add_axes([0.1,gap+3*plot_height+2.5*mini_gap,0.87,minibar])
-  axS = fig.add_axes([0.1,gap+2*plot_height+2*mini_gap,0.87,plot_height])
-  axV = fig.add_axes([0.1,gap+plot_height+mini_gap,0.87,plot_height])
-  axT = fig.add_axes([0.1,gap,0.87,plot_height])
+  gap = 0.05
+  graph_height = 0.24
+
+  axRGB = fig.add_axes([0.1,gap+3*graph_height+3*mini_gap+huebar,0.87,rgbbar])
+  axH = fig.add_axes([0.1,gap+3*graph_height+2.5*mini_gap,0.87,huebar])
+  axS = fig.add_axes([0.1,gap+2*graph_height+2*mini_gap,0.87,graph_height])
+  axV = fig.add_axes([0.1,gap+graph_height+mini_gap,0.87,graph_height])
+  axT = fig.add_axes([0.1,gap,0.87,graph_height])
   
   return (axRGB, axH, axS, axV, axT)
 
@@ -135,7 +134,7 @@ def plot_timeseries(ax,t,dt,y,start,stop,ylim=False,ylabel=False,color='#1f77b4'
   # make the dates exact
   ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 
-def plotting_manager(target):
+def plotting_manager(target, start, stop, save=False):
   """
   Loads data, creates figures, inserts subplots
   """
@@ -145,10 +144,6 @@ def plotting_manager(target):
   df = pd.read_excel('{0}/{1}/{1}_satellite.xlsx'.format(base_dir,target))
   r,g,b,h,s,v,dBT,dt,t = null_handler(df)
 
-  # define time period
-  start = datetime.datetime(1987,1,1)
-  stop  = datetime.datetime(2017,1,1) 
-
   # interpolate r, g, b
   R, G, B = interpolate_triplet(r,g,b,t,start,stop)
 
@@ -156,46 +151,63 @@ def plotting_manager(target):
   Hue = pure_hue(R,G,B)
 
   # define figure
-  fig = plt.figure(figsize=(8,12))
+  fig = plt.figure(figsize=(6,12))
   axRGB, axH, axS, axV, axT = define_axes(fig)
 
+  # define top value
+  top = {'Kelimutu_a':0.14,'Kelimutu_b':0.5,'Kelimutu_c':0.2}[target]
+
   # RGB color bar
-  plot_colorbar(axRGB,[rgb_stretch(R, G, B, target)],ylabel = 'RGB')
+  plot_colorbar(axRGB,[rgb_stretch(R, G, B, top)],ylabel = 'RGB')
 
   # hue color bar
   plot_colorbar(axH,[Hue], ylabel='hue')
 
   # saturation
-  plot_timeseries(axS,t,dt,s,start,stop,ylabel='saturation')
+  plot_timeseries(axS,t,dt,s,start,stop,ylim=(0,0.85),ylabel='saturation')
 
   # value
-  plot_timeseries(axV,t,dt,v,start,stop,ylabel='value')
+  plot_timeseries(axV,t,dt,v,start,stop,ylim=(0,top),ylabel='value')
 
   # delta temperatures
-  plot_timeseries(axT,t,dt,dBT,start,stop,ylabel=r'$\Delta$T ($^{o}$C)',color='k')
+  plot_timeseries(axT,t,dt,dBT,start,stop,ylim=(-15,25),ylabel=r'$\Delta$T ($^{o}$C)',color='k')
   axT.set_xlabel('Year')
 
-  plt.show()
-
-  # # save
-  # outdir = '/home/sam/git/crater_lakes/plots/'+target
-  # if not os.path.exists(outdir):
-  #   os.mkdir(outdir)
-  # os.chdir(outdir)
-  # plt.savefig(target+'_v6.png')
-  # plt.close()
-  # print('saved: '+target)
+  # save
+  if save:
+    outdir = '/home/sam/git/crater_lakes/plots/Kelimutu'
+    if not os.path.exists(outdir):
+      os.mkdir(outdir)
+    os.chdir(outdir)
+    plt.savefig(target+'_v8.png')
+    plt.close()
+    print('saved: '+target)
+  else:
+    plt.show()
 
 def main():
   
   args = sys.argv[1:]
 
-  if len(args) != 1:
-    print('usage: python3 plot_time_series_v6.py {target_name}')
+  if len(args) == 0:
+    print('usage: python3 plot_time_series_v8.py {target_name} {--save}')
     return
   try:
-    target = args[0]
-    plotting_manager(target)
+    target = args.pop(0)
+    save = False
+    if args:
+      keyword = args[0]
+      if keyword == '--save':
+        save = True
+      else:
+        print('keyword not recognized: '+keyword)
+    
+    # define time period
+    start = datetime.datetime(2012,1,1)
+    stop  = datetime.datetime(2014,1,1)
+    
+    # create plot
+    plotting_manager(target, start, stop, save=save)
   except:
     print('problem running with :'+target)
 
