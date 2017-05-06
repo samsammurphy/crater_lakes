@@ -36,11 +36,15 @@ def RGB_list(geom):
   """
 
   # image collections
-  L4 = ee.ImageCollection('LANDSAT/LT4_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
-  L5 = ee.ImageCollection('LANDSAT/LT5_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
-  L7 = ee.ImageCollection('LANDSAT/LE7_L1T_TOA').select(['B3','B2','B1']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
-  L8 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').select(['B4','B3','B2']).filterDate('2016-01-01', '2017-01-01').filterBounds(geom.centroid())
+  L4 = ee.ImageCollection('LANDSAT/LT4_L1T_TOA').select(['B3','B2','B1']).filterDate('1980-01-01', '2017-01-01').filterBounds(geom.centroid())
+  L5 = ee.ImageCollection('LANDSAT/LT5_L1T_TOA').select(['B3','B2','B1']).filterDate('1980-01-01', '2017-01-01').filterBounds(geom.centroid())
+  L7 = ee.ImageCollection('LANDSAT/LE7_L1T_TOA').select(['B3','B2','B1']).filterDate('1980-01-01', '2017-01-01').filterBounds(geom.centroid())
+  L8 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').select(['B4','B3','B2']).filterDate('1980-01-01', '2017-01-01').filterBounds(geom.centroid())
   merged = L4.merge(L5).merge(L7).merge(L8)
+  
+  ##!!////////////////////////////
+  merged = L5
+  ##!!////////////////////////////
 
   # RGB extractor (i.e. mapping function with enclosed geom)
   RGB_extractor = enclose_geom(geom)
@@ -66,9 +70,9 @@ def main():
 
   # RGB list size
   num = RGBs.length().getInfo()
-
+  print(num)
   # export list elements
-  for i in range(0,2):
+  for i in range(num):
     
     # this rgb visual
     rgb = ee.Image(RGBs.get(i))
@@ -76,12 +80,12 @@ def main():
     # filename from datetime
     timestamp = rgb.get('timestamp').getInfo()
     date = datetime.datetime.utcfromtimestamp(timestamp)
-    filename = date.strftime('%Y_%m_%d_%H%M')
+    filename = target+'_'+date.strftime('%Y_%m_%d_%H%M')
     
     # export
     task = ee.batch.Export.image.toDrive(image=rgb,
-                                        description=filename,
-                                        folder = 'RGBs_'+target,
+                                        description= filename,
+                                        folder = '',
                                         scale = 30,
                                         dimensions = 400)
     task.start() 
