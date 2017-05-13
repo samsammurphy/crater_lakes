@@ -43,7 +43,7 @@ def RGB_list(geom):
   merged = L4.merge(L5).merge(L7).merge(L8)
   
   ##!!////////////////////////////
-  merged = L5
+  merged = L7.merge(L8)
   ##!!////////////////////////////
 
   # RGB extractor (i.e. mapping function with enclosed geom)
@@ -92,10 +92,10 @@ def main():
 
     print('Progress = {0} of {1}, fileID = {2}'.format(i+1,num,filename))
     
-    # take naps
-    # nap = 240
-    # print('sleeping for {} secs..'.format(nap))
-    # time.sleep(nap) # <-------------------------------------------------------------------------- sleeper
+    # pause between downloads..
+    nap = 240
+    print('sleeping for {} secs..'.format(nap))
+    time.sleep(nap) # <-------------------------------------------------------------------------- sleeper
 
 if __name__ == '__main__':
   main()

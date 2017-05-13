@@ -17,13 +17,13 @@ def remove_baddies(fc, target):
   1) from bad fileID list
   2) from not in cloud_filtered_(manually)/
   """
-
+  
   # full fileIDs and dates (these lists will be cloud filtered in level up)
   fileIDs = [x['properties']['fileID'] for x in fc]
   dates = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
   bad_files = naughty_list(target, fileIDs, dates)
   ok = np.array([x['properties']['fileID'] not in bad_files for x in fc])
-
+  
   return np.compress(ok, fc)
 
 def getSR(fc, bandname):
@@ -61,7 +61,7 @@ def lake_statistics_from_GeoJSON(base_path, target):
     
     # feature collection (clean)
     fc = json.load(open(fpath))['features']  
-    fc = remove_baddies(fc, target)
+    #fc = remove_baddies(fc, target)
     
     date = [datetime.datetime.utcfromtimestamp(x['properties']['timestamp']) for x in fc]
     fileID = getX(fc, 'fileID')
